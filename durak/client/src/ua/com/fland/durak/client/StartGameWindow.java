@@ -23,7 +23,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 /**
- * @author unknown
+ * @author Maxim Bondarenko
  */
 public class StartGameWindow extends JFrame implements Runnable {
     private static final Logger logger = Logger.getLogger(StartGameWindow.class);
