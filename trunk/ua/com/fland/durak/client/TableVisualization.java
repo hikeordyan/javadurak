@@ -607,6 +607,7 @@ public class TableVisualization implements Runnable {
 
     public void run() {
         logger.debug("Getting last move...");
+        log
 
         isTurnWaiting = true;
         activeCardsDesc = gameServer.getActiveCards(serverID, plName);
