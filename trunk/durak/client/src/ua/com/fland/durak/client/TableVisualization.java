@@ -42,6 +42,8 @@ public class TableVisualization implements Runnable {
     private JButton secondSecondRawEmptyCardPlace = new JButton();
     private JButton tableEmptyCardPlace = new JButton();
 
+    private JLabel statusLabel = new JLabel("STATUS: no status yet");
+
     //private TableActionProcess tableActionProcess;
 
     private ActiveCardsDesc activeCardsDesc;
@@ -81,6 +83,8 @@ public class TableVisualization implements Runnable {
     //exchanger statuses
     private final static byte END_GAME_REACHED = 6;
 
+    private final static int STATUS_LABEL_LENGTH = 500;
+
     public TableVisualization(byte plName, String serverID, FramesExchanger exchanger) {
         this.plName = plName;
         this.serverID = serverID;
@@ -93,6 +97,17 @@ public class TableVisualization implements Runnable {
         firstPLCardLabels = new ArrayList<JLabel>();
         secondPLCardLabels = new ArrayList<JLabel>();
         cardsOnTableLabels = new ArrayList<JLabel>();
+        statusLabel.setPreferredSize(new Dimension(STATUS_LABEL_LENGTH, 20));
+        switch (gameType) {
+            case LEADING:
+                statusLabel.setText("STATUS: leading, put next card or press End of turn button");
+                break;
+            case BEATING_OFF:
+                statusLabel.setText("STATUS: beating off, put next card or press End of turn button");
+                break;
+            default:
+                logger.error("Unexpected gameType value: " + gameType);
+        }
         /*cardsOnTableValues = new ArrayList<CardDesc>();
         firstPLCardsValues = new ArrayList<CardDesc>();*/
         //tableActionProcess = new TableActionProcess(activeCardsDesc, activeCardsDesc.selectedCard, serverID, plName);
@@ -179,6 +194,7 @@ public class TableVisualization implements Runnable {
         } else {
             logger.error("Cann't find file: " + cardIconName);
         }
+
         firstFirstRawEmptyCardPlace = new JButton(cardIcon);
         firstFirstRawEmptyCardPlace.setBorder(emptyBorder);
         secondFirstRawEmptyCardPlace = new JButton(cardIcon);
@@ -309,14 +325,20 @@ public class TableVisualization implements Runnable {
         }
 
         //creating insets for all left buttons
-        gbc.insets = new Insets(0, 0, 0, -20);
+        gbc.insets = new Insets(0, 0, 0, -30);
 
         //adding submit button
         gbc.gridy = 5;
 
         gridBag.setConstraints(submitButton, gbc);
 
+        //adding status label
+        gbc.insets = new Insets(0, 0, 0, -STATUS_LABEL_LENGTH);
+        gbc.gridy = 6;
+        gridBag.setConstraints(statusLabel, gbc);
+
         //adding emptyPlace card or cards
+        gbc.insets = new Insets(0, 0, 0, -20);
         if (activeCardsDesc.secondPLCardsNum < 13) {
             gbc.gridy = 0;
             gridBag.setConstraints(secondFirstRawEmptyCardPlace, gbc);
@@ -395,6 +417,9 @@ public class TableVisualization implements Runnable {
         if (secondPLCardLabels.size() == 0) {
             mainFrame.remove(secondSecondRawEmptyCardPlace);
         }
+
+        //removing status label
+        mainFrame.remove(statusLabel);
         //mainFrame.removeAll();
 
     }
@@ -491,6 +516,8 @@ public class TableVisualization implements Runnable {
             mainFrame.add(secondSecondRawEmptyCardPlace);
         }
 
+        //adding status label
+        mainFrame.add(statusLabel);
     }
 
     //TODO make something with this terrible initConnection in many classes
@@ -540,6 +567,7 @@ public class TableVisualization implements Runnable {
                             activeCardsDesc = tempActiveCardsDesc;
                             activeCardsDesc.selectedCard = sortFirstPLLabels().get(activeCardsDesc.selectedCard);
                             logger.debug("redrawing table...");
+                            statusLabel.setText("STATUS: waiting for second player move...");
                             drawTable(activeCardsDesc, mainFrame, gameType);
                             new Thread(this, "Last move waiting thread").start();
                         } else {
@@ -588,6 +616,7 @@ public class TableVisualization implements Runnable {
                 activeCardsDesc = gameServer.setLastMove(serverID, plName, TAKE_CARDS);
                 activeCardsDesc.selectedCard = sortFirstPLLabels().get(activeCardsDesc.selectedCard);
                 logger.debug("redrawing table...");
+                statusLabel.setText("STATUS: waiting for second player move...");
                 drawTable(activeCardsDesc, mainFrame, gameType);
                 new Thread(this, "Last move waiting thread").start();
                 break;
@@ -596,6 +625,7 @@ public class TableVisualization implements Runnable {
                 activeCardsDesc = gameServer.setLastMove(serverID, plName, END_OF_LEADING);
                 activeCardsDesc.selectedCard = sortFirstPLLabels().get(activeCardsDesc.selectedCard);
                 logger.debug("redrawing table...");
+                statusLabel.setText("STATUS: waiting for second player move...");
                 drawTable(activeCardsDesc, mainFrame, gameType);
                 gameType = BEATING_OFF;
                 new Thread(this, "Last move waiting thread").start();
@@ -606,7 +636,6 @@ public class TableVisualization implements Runnable {
     }
 
     public void run() {
-        logger.debug("test svn");
         logger.debug("Getting last move...");
 
         isTurnWaiting = true;
@@ -631,6 +660,17 @@ public class TableVisualization implements Runnable {
                     gameType = LEADING;
                 }
                 logger.debug("Last move got, re-drawing table...");
+
+                switch (gameType) {
+                    case LEADING:
+                        statusLabel.setText("STATUS: leading, put next card or press End of turn button");
+                        break;
+                    case BEATING_OFF:
+                        statusLabel.setText("STATUS: beating off, put next card or press End of turn button");
+                        break;
+                    default:
+                        logger.error("Unexpected gameType value: " + gameType);
+                }
                 drawTable(activeCardsDesc, mainFrame, gameType);
                 isTurnWaiting = false;
             }
