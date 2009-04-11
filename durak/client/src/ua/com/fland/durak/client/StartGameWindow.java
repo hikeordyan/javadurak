@@ -43,7 +43,7 @@ public class StartGameWindow extends JFrame implements Runnable {
     private FramesExchanger mainGameWinExchanger;
 
     private final static int NEW_SERVER_GAME_TYPE = 1;
-    private final static int NORMAL_GAMR_TYPE = 0;
+    private final static int NORMAL_GAME_TYPE = 0;
 
     private final static int NEW_GAME_CANCELED = 2;
     private final static int NEW_GAME_ACCEPTED = 3;
@@ -55,28 +55,40 @@ public class StartGameWindow extends JFrame implements Runnable {
     private void fillServerList() {
         //getting lists
         serversNames = new HashMap<String, String>();
-        serversNames = gameServer.getGamesNames();
-        logger.debug("serversNames " + serversNames);
+        try {
+            serversNames = gameServer.getGamesNames();
+            logger.debug("serversNames " + serversNames);
 
-        serversTimeouts = new HashMap<String, Integer>();
-        serversTimeouts = gameServer.getGamesTimeouts();
-        logger.debug("serverTimeouts " + serversTimeouts);
+            serversTimeouts = new HashMap<String, Integer>();
+            serversTimeouts = gameServer.getGamesTimeouts();
+            logger.debug("serverTimeouts " + serversTimeouts);
 
-        //filling list in form
-        String[] servers = new String[serversNames.size()];
-        Iterator serverNamesIter = serversNames.values().iterator();
-        Iterator serverTimeoutsIter = serversTimeouts.values().iterator();
-        serverNamesTimeouts = new HashMap<String, String>();
-        serversIds = new HashMap<String, String>();
-        String[] ids = serversNames.keySet().toArray(new String[serversNames.keySet().size()]);
-        for (int i = 0; i < serversNames.size(); i++) {
-            String serverName = serverNamesIter.next().toString();
-            String serverTimeout = serverTimeoutsIter.next().toString();
-            servers[i] = serverName;
-            serverNamesTimeouts.put(serverName, serverTimeout);
-            serversIds.put(serverName, ids[i]);
+            //filling list in form
+            String[] servers = new String[serversNames.size()];
+            Iterator serverNamesIter = serversNames.values().iterator();
+            Iterator serverTimeoutsIter = serversTimeouts.values().iterator();
+            serverNamesTimeouts = new HashMap<String, String>();
+            serversIds = new HashMap<String, String>();
+            String[] ids = serversNames.keySet().toArray(new String[serversNames.keySet().size()]);
+            for (int i = 0; i < serversNames.size(); i++) {
+                String serverName = serverNamesIter.next().toString();
+                String serverTimeout = serverTimeoutsIter.next().toString();
+                servers[i] = serverName;
+                serverNamesTimeouts.put(serverName, serverTimeout);
+                serversIds.put(serverName, ids[i]);
+            }
+            avaibleServers.setListData(servers);
+        } catch (HessianRuntimeException e) {
+            logger.error("Cann't connect to 81.22.135.175:8080/gameServer " + e);
+            switch (JOptionPane.showConfirmDialog(this, "Cann't connect to game server. Check your firewall settings. Exit game?", "Error", JOptionPane.YES_NO_OPTION)) {
+                case JOptionPane.YES_OPTION:
+                    logger.debug("Closing  StartGame frame");
+                    this.setVisible(false);
+                    mainGameWinExchanger.put(EXIT_GAME);
+                    this.dispose();
+                    break;
+            }
         }
-        avaibleServers.setListData(servers);
     }
 
     private void initConnection() throws MalformedURLException {
@@ -94,12 +106,7 @@ public class StartGameWindow extends JFrame implements Runnable {
 
         try {
             initConnection();
-
-            try {
-                fillServerList();
-            } catch (HessianRuntimeException e) {
-                logger.error("Cann't connect " + e);
-            }
+            fillServerList();
         } catch (MalformedURLException e) {
             logger.error("Cann't create factory" + e);
         }
@@ -181,7 +188,7 @@ public class StartGameWindow extends JFrame implements Runnable {
         } */
     }
 
-    private void refreshListBtnMouseClicked(MouseEvent e) {
+    private void refreshListBtnMouseClicked(MouseEvent me) {
         fillServerList();
     }
 
