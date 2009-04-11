@@ -79,10 +79,10 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
         mainFrame.setVisible(true);
 
         logger.debug("Creating NewGame frame");
+        new Thread(this, "Start MainGameWindow change").start();
         startGameFrame = new StartGameWindow(exchanger);
         logger.debug("Showing NewGame frame...");
         startGameFrame.setVisible(true);
-        new Thread(this, "Start MainGameWindow change").start();
     }
 
     //TODO make something with this terrible initConnection in many classes

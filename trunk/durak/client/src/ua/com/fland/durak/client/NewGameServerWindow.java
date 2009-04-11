@@ -5,6 +5,7 @@
 package ua.com.fland.durak.client;
 
 import com.caucho.hessian.client.HessianProxyFactory;
+import com.caucho.hessian.client.HessianRuntimeException;
 import org.apache.log4j.Logger;
 import org.jdesktop.layout.GroupLayout;
 import org.jdesktop.layout.LayoutStyle;
@@ -76,7 +77,11 @@ public class NewGameServerWindow extends JFrame implements Runnable {
     private void cancelButtonMouseClicked(MouseEvent e) {
         if (gameStatus == PL_WAITING) {
             logger.debug("Removing server...");
-            gameServer.removeGameServer(waitingServerID);
+            try {
+                gameServer.removeGameServer(waitingServerID);
+            } catch (HessianRuntimeException hre) {
+                connectionExceptionCaught(hre);
+            }
         }
         this.setVisible(false);
         exchanger.put(NEW_GAME_CANCELED);
@@ -84,41 +89,50 @@ public class NewGameServerWindow extends JFrame implements Runnable {
         logger.debug("NewGameServerWindow disposed");
     }
 
+    private void connectionExceptionCaught(HessianRuntimeException hre) {
+        logger.error("Cann't connect to 81.22.135.175:8080/gameServer " + hre);
+        JOptionPane.showMessageDialog(this, "Cann't connect to game server. Check your firewall settings.", "Error", JOptionPane.ERROR_MESSAGE);
+    }
+
     private void okButtonMouseClicked(MouseEvent e) {
         if (gameStatus == NORMAL) {
-            logger.debug("Getting entered params");
-            if (gameName.getText().equals("") | gameName.getText() == null | (gameName.getText()).length() > 11 | gameServer.getGamesNames().containsValue(gameName.getText())) {
-                logger.debug("Showing error window");
-                JOptionPane.showMessageDialog(this, "New game server name must be unique and contain more then 0 symbols but less then 12 symbols", "Error", JOptionPane.ERROR_MESSAGE);
-            } else {
-                logger.debug("Sending params to server");
-                //getting timeout
-                switch (timeOutValue.getSelectedIndex()) {
-                    case 0:
-                        selectedTimeout = 30;
-                        break;
-                    case 1:
-                        selectedTimeout = 60;
-                        break;
-                    case 2:
-                        selectedTimeout = 180;
-                        break;
-                    case 3:
-                        selectedTimeout = 300;
-                        break;
-                    case 4:
-                        selectedTimeout = 600;
-                        break;
-                    default:
-                        selectedTimeout = 60;
-                }
-                waitingServerID = gameServer.addGameServer(gameName.getText(), selectedTimeout);
+            try {
+                logger.debug("Getting entered params");
+                if (gameName.getText().equals("") | gameName.getText() == null | (gameName.getText()).length() > 11 | gameServer.getGamesNames().containsValue(gameName.getText())) {
+                    logger.debug("Showing error window");
+                    JOptionPane.showMessageDialog(this, "New game server name must be unique and contain more then 0 symbols but less then 12 symbols", "Error", JOptionPane.ERROR_MESSAGE);
+                } else {
+                    logger.debug("Sending params to server");
+                    //getting timeout
+                    switch (timeOutValue.getSelectedIndex()) {
+                        case 0:
+                            selectedTimeout = 30;
+                            break;
+                        case 1:
+                            selectedTimeout = 60;
+                            break;
+                        case 2:
+                            selectedTimeout = 180;
+                            break;
+                        case 3:
+                            selectedTimeout = 300;
+                            break;
+                        case 4:
+                            selectedTimeout = 600;
+                            break;
+                        default:
+                            selectedTimeout = 60;
+                    }
 
-                gameStatus = PL_WAITING;
-                statusLabel.setText("Status: Waiting for another player...");
-                okButton.setEnabled(false);
-                new Thread(this, "Client waiting...").start();
-                //this.setVisible(false);
+                    waitingServerID = gameServer.addGameServer(gameName.getText(), selectedTimeout);
+                    gameStatus = PL_WAITING;
+                    statusLabel.setText("Status: Waiting for another player...");
+                    okButton.setEnabled(false);
+                    new Thread(this, "Client waiting...").start();
+                    //this.setVisible(false);
+                }
+            } catch (HessianRuntimeException hre) {
+                connectionExceptionCaught(hre);
             }
         } else {
             logger.debug("Action not performed in not NORMAL status");
