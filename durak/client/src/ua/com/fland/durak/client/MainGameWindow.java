@@ -1,6 +1,7 @@
 package ua.com.fland.durak.client;
 
 import com.caucho.hessian.client.HessianProxyFactory;
+import com.caucho.hessian.client.HessianRuntimeException;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.xml.XmlBeanFactory;
 import org.springframework.core.io.ClassPathResource;
@@ -100,7 +101,7 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
         }
     }
 
-    private void reInitMainFrame(){
+    private void reInitMainFrame() {
         logger.debug("Setting frame params");
         mainFrame.setSize(1024, 768);
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -123,8 +124,29 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
         new Thread(this, "Start MainGameWindow change").start();
     }
 
+    private boolean noConnectionPrevention(HessianRuntimeException hre) {
+        logger.error("Cann't connect to 81.22.135.175:8080/gameServer " + hre);
+        Object[] options = {"Yes",
+                "No, exit the game"};
+
+        switch (JOptionPane.showOptionDialog(mainFrame, "Cann't connect to game server. Check your firewall settings. Retry connection?", "Error",
+                JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE, null, options, options[1])) {
+            case JOptionPane.YES_OPTION:
+                return true;
+            case JOptionPane.NO_OPTION:
+                logger.debug("Exiting the game...");
+                mainFrame.validate();
+                mainFrame.setVisible(false);
+                System.exit(0);
+                return false;
+            default:
+                return true;
+        }
+    }
+
     //TODO remake getting cards, put in personal method
     public void run() {
+        boolean retryConnection = true;
         switch (exchanger.get()) {
             case EXIT_GAME:
                 mainFrame.setVisible(false);
@@ -134,27 +156,13 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
                 plName = SECOND_PL;
                 gameType = BEATING_OFF;
                 logger.debug("plNum is second");
-                logger.debug("Getting server ID...");
-                serverID = startGameFrame.getServerID();
-                logger.debug("Got ID " + serverID);
-                logger.debug("Getting cardBatch");
-                activeCardsDesc = gameServer.getActiveCards(serverID, plName);
-                logger.debug("Got my cards:" + activeCardsDesc.firstPLCards);
-                logger.debug("Cards on table" + activeCardsDesc.cardsOnTable);
-                refreshTable();
+                getPrimaryGameData();
                 break;
             case NEW_GAME_ACCEPTED:
                 plName = FIRST_PL;
                 gameType = LEADING;
                 logger.debug("plNum is first");
-                logger.debug("Getting server ID...");
-                serverID = startGameFrame.getServerID();
-                logger.debug("Got ID " + serverID);
-                logger.debug("Getting cardBatch");
-                activeCardsDesc = gameServer.getActiveCards(serverID, plName);
-                logger.debug("Got my cards:" + activeCardsDesc.firstPLCards);
-                logger.debug("Cards on table" + activeCardsDesc.cardsOnTable);
-                refreshTable();
+                getPrimaryGameData();
                 break;
             case END_GAME_REACHED:
                 logger.debug("starting new game...");
@@ -166,31 +174,26 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
         }
     }
 
-    private void getPrimaryNetworkData() {
-        /*try {
-            logger.debug("Connecting...");
-            initConnection();
-
+    private void getPrimaryGameData() {
+        logger.debug("Getting server ID...");
+        boolean retryConnection = true;
+        serverID = startGameFrame.getServerID();
+        logger.debug("Got ID " + serverID);
+        logger.debug("Getting cardBatch");
+        while (retryConnection) {
             try {
-                logger.debug("Getting new ID...");
-                plID = getID();
-                logger.debug("Received ID: " + plID);
-
-                logger.debug("Getting pair...");
-                pairNum = getPair();
-                logger.debug("Received pair: " + pairNum);
-
-                logger.debug("Getting card batch values...");
-                createCardBatchValues();
-                cardBatchValues = getCardBatchValues(pairNum);
-                logger.debug("Card batch recieved");
-            } catch (HessianRuntimeException e) {
-                logger.error("Cann't connect " + e);
-                createCardBatchValues();
+                activeCardsDesc = gameServer.getActiveCards(serverID, plName);
+                retryConnection = false;
+            } catch (HessianRuntimeException hre) {
+                retryConnection = noConnectionPrevention(hre);
             }
-        } catch (MalformedURLException e) {
-            logger.error("Cann't create factory " + e);
-        }*/
+        }
+        logger.debug("Got my cards:" + activeCardsDesc.firstPLCards);
+        logger.debug("Cards on table" + activeCardsDesc.cardsOnTable);
+        refreshTable();
+    }
+
+    private void getPrimaryNetworkData() {
         //setting
         XmlBeanFactory factory = new XmlBeanFactory(new ClassPathResource("applicationContext.xml"));
         ConnectionServiceImpl connectionService = ConnectionServiceImpl.class.cast(factory.getBean("setHessianParams"));
@@ -222,7 +225,7 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
             }
         });
 
-        
+
     }
 
 }

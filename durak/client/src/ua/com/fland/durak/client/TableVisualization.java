@@ -1,6 +1,7 @@
 package ua.com.fland.durak.client;
 
 import com.caucho.hessian.client.HessianProxyFactory;
+import com.caucho.hessian.client.HessianRuntimeException;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
@@ -72,7 +73,7 @@ public class TableVisualization implements Runnable {
     private final static byte BEATING_OFF = 1;
 
     private final static byte TAKE_CARDS = -1;
-    private final static byte END_OF_TURN = -2;
+    //private final static byte END_OF_TURN = -2;
     private final static byte END_OF_LEADING = -3;
 
     /**
@@ -82,6 +83,7 @@ public class TableVisualization implements Runnable {
 
     //exchanger statuses
     private final static byte END_GAME_REACHED = 6;
+    private final static int EXIT_GAME = 4;
 
     private final static int STATUS_LABEL_LENGTH = 500;
 
@@ -536,17 +538,22 @@ public class TableVisualization implements Runnable {
     }
 
     private boolean isEndOfGame(ActiveCardsDesc activeCardsDesc) {
-        if (activeCardsDesc.secondPLCardsNum == END_OF_GAME) {
-            return true;
-        } else {
-            return false;
-        }
+        return activeCardsDesc.secondPLCardsNum == END_OF_GAME;
     }
 
     private void cardButtonPressed(int cardNum) {
         if (!isTurnWaiting) {
             if (activeCardsDesc.selectedCard == cardNum) {
-                ActiveCardsDesc tempActiveCardsDesc = gameServer.setLastMove(serverID, plName, cardNum);
+                boolean retryConnection = true;
+                ActiveCardsDesc tempActiveCardsDesc = new ActiveCardsDesc();
+                while (retryConnection) {
+                    try {
+                        tempActiveCardsDesc = gameServer.setLastMove(serverID, plName, cardNum);
+                        retryConnection = false;
+                    } catch (HessianRuntimeException hre) {
+                        retryConnection = noConnectionPrevention(hre);
+                    }
+                }
                 logger.debug("tempActiveCardsDesc.secondPLCardsNum" + tempActiveCardsDesc.secondPLCardsNum);
                 if (tempActiveCardsDesc.timeOutReached) {
                     logger.debug("timeout reached. starting new game...");
@@ -610,10 +617,18 @@ public class TableVisualization implements Runnable {
     }
 
     private void changeGameType() {
+        boolean retryConnection = true;
         switch (gameType) {
             case BEATING_OFF:
                 logger.debug("Taking cards...");
-                activeCardsDesc = gameServer.setLastMove(serverID, plName, TAKE_CARDS);
+                while(retryConnection){
+                    try{
+                        activeCardsDesc = gameServer.setLastMove(serverID, plName, TAKE_CARDS);
+                        retryConnection = false;
+                    }catch(HessianRuntimeException hre){
+                        retryConnection = noConnectionPrevention(hre);
+                    }
+                }
                 activeCardsDesc.selectedCard = sortFirstPLLabels().get(activeCardsDesc.selectedCard);
                 logger.debug("redrawing table...");
                 statusLabel.setText("STATUS: waiting for second player move...");
@@ -622,7 +637,14 @@ public class TableVisualization implements Runnable {
                 break;
             case LEADING:
                 logger.debug("End of leading...");
-                activeCardsDesc = gameServer.setLastMove(serverID, plName, END_OF_LEADING);
+                while(retryConnection){
+                    try{
+                        activeCardsDesc = gameServer.setLastMove(serverID, plName, END_OF_LEADING);
+                        retryConnection = false;
+                    }catch(HessianRuntimeException hre){
+                        retryConnection = noConnectionPrevention(hre);
+                    }
+                }
                 activeCardsDesc.selectedCard = sortFirstPLLabels().get(activeCardsDesc.selectedCard);
                 logger.debug("redrawing table...");
                 statusLabel.setText("STATUS: waiting for second player move...");
@@ -635,11 +657,46 @@ public class TableVisualization implements Runnable {
         }
     }
 
+    private boolean noConnectionPrevention(HessianRuntimeException hre) {
+        logger.error("Cann't connect to 81.22.135.175:8080/gameServer " + hre);
+        Object[] options = {"Yes",
+                "No, exit the game",
+                "No, start new game"};
+
+        switch (JOptionPane.showOptionDialog(mainFrame, "Cann't connect to game server. Check your firewall settings. Retry connection?", "Error",
+                JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE, null, options, options[2])) {
+            case JOptionPane.YES_OPTION:
+                return true;
+            case JOptionPane.NO_OPTION:
+                logger.debug("Exiting the game...");
+                removeFrameElements();
+                mainFrame.validate();
+                exchanger.put(EXIT_GAME);
+                return false;
+            case JOptionPane.CANCEL_OPTION:
+                logger.debug("Starting new game...");
+                removeFrameElements();
+                mainFrame.validate();
+                exchanger.put(END_GAME_REACHED);
+                return false;
+            default:
+                return true;
+        }
+    }
+
     public void run() {
         logger.debug("Getting last move...");
 
         isTurnWaiting = true;
-        activeCardsDesc = gameServer.getActiveCards(serverID, plName);
+        boolean retryConnection = true;
+        while (retryConnection) {
+            try {
+                activeCardsDesc = gameServer.getActiveCards(serverID, plName);
+                retryConnection = false;
+            } catch (HessianRuntimeException hre) {
+                retryConnection = noConnectionPrevention(hre);
+            }
+        }
         if (activeCardsDesc.timeOutReached) {
             JOptionPane.showMessageDialog(mainFrame, "<html><center>Game timeout reached.<br>YOU HAVE WON!!!<br>Starting new game...</center></html>", "Congratulation", JOptionPane.ERROR_MESSAGE);
             removeFrameElements();
