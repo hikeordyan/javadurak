@@ -79,10 +79,15 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
         logger.debug("Showing frame");
         mainFrame.setVisible(true);
 
+        /*JDialog tempDialog = new TestDialog();
+        tempDialog.setVisible(true);*/
+        //mainFrame.add(tempDialog);
+
         logger.debug("Creating NewGame frame");
-        new Thread(this, "Start MainGameWindow change").start();
         startGameFrame = new StartGameWindow(exchanger);
+        new Thread(this, "Start MainGameWindow change").start();
         logger.debug("Showing NewGame frame...");
+        //startGameFrame.setModal(true);
         startGameFrame.setVisible(true);
     }
 
@@ -120,8 +125,8 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
         logger.debug("Creating NewGame frame");
         startGameFrame = new StartGameWindow(exchanger);
         logger.debug("Showing NewGame frame...");
-        startGameFrame.setVisible(true);
         new Thread(this, "Start MainGameWindow change").start();
+        startGameFrame.setVisible(true);
     }
 
     private boolean noConnectionPrevention(HessianRuntimeException hre) {
