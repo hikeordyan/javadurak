@@ -22,7 +22,7 @@ import java.net.MalformedURLException;
 /**
  * @author Maxim Bondarenko
  */
-public class NewGameServerWindow extends JFrame implements Runnable {
+public class NewGameServerWindow extends JDialog implements Runnable {
     private static final Logger logger = Logger.getLogger(NewGameServerWindow.class);
 
     private HessianProxyFactory factory;
@@ -56,6 +56,8 @@ public class NewGameServerWindow extends JFrame implements Runnable {
 
         logger.debug("Creating NewGameServerWindow");
         initComponents();
+        //this.setModal(true);
+
         initConnection();
         fillTimeoutValues();
         gameStatus = NORMAL;
@@ -83,8 +85,11 @@ public class NewGameServerWindow extends JFrame implements Runnable {
                 connectionExceptionCaught(hre);
             }
         }
-        this.setVisible(false);
+        this.setModal(false);
+        //this.setModalityType();
         exchanger.put(NEW_GAME_CANCELED);
+
+        this.setVisible(false);
         this.dispose();
         logger.debug("NewGameServerWindow disposed");
     }
@@ -159,6 +164,7 @@ public class NewGameServerWindow extends JFrame implements Runnable {
         }
 
         gameStatus = NORMAL;
+        this.setModal(false);
         this.setVisible(false);
         if (serverID.equals("-waitingServerStopped")) {
             exchanger.put(NEW_GAME_CANCELED);

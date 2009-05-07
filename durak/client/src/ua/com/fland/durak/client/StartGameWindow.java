@@ -25,7 +25,7 @@ import java.util.Map;
 /**
  * @author Maxim Bondarenko
  */
-public class StartGameWindow extends JFrame implements Runnable {
+public class StartGameWindow extends JDialog implements Runnable {
     private static final Logger logger = Logger.getLogger(StartGameWindow.class);
 
     private HessianProxyFactory factory;
@@ -103,6 +103,7 @@ public class StartGameWindow extends JFrame implements Runnable {
         this.exchanger = new FramesExchanger();
 
         initComponents();
+        this.setModal(true);
 
         try {
             initConnection();
@@ -116,23 +117,26 @@ public class StartGameWindow extends JFrame implements Runnable {
         logger.debug("Closing  StartGame frame");
         this.setVisible(false);
         mainGameWinExchanger.put(EXIT_GAME);
+        this.setModal(false);
         this.dispose();
     }
 
 
     private void createBtnMouseClicked(MouseEvent e) {
         logger.debug("Creating NewGameServerWindow");
+        this.setModal(false);
         newGameServer = new NewGameServerWindow(exchanger);
 
         /*ServerDesc temp = gameServer.testSerial();
         logger.debug(temp.serverName);
         logger.debug(temp.timeout);*/
+        this.setVisible(false);
 
         logger.debug("Showing NewGameServerWindow");
-        newGameServer.setVisible(true);
         gameType = NEW_SERVER_GAME_TYPE;
-        this.setVisible(false);
         new Thread(this, "StartGameWindow Start exchange").start();
+        newGameServer.setModal(true);
+        newGameServer.setVisible(true);
     }
 
     public void run() {
@@ -140,6 +144,7 @@ public class StartGameWindow extends JFrame implements Runnable {
         switch (exchangerRes) {
             case NEW_GAME_CANCELED:
                 fillServerList();
+                this.setModal(true);
                 this.setVisible(true);
                 break;
             case NEW_GAME_ACCEPTED:
@@ -162,6 +167,7 @@ public class StartGameWindow extends JFrame implements Runnable {
                 JOptionPane.showMessageDialog(this, "No \"" + avaibleServers.getSelectedValue().toString() + "\" waiting server name. Select other server.", "Error", JOptionPane.ERROR_MESSAGE);
                 fillServerList();
             } else {
+                this.setModal(false);
                 this.setVisible(false);
                 this.dispose();
                 mainGameWinExchanger.put(JOIN_GAME_ACCEPTED);
@@ -170,10 +176,12 @@ public class StartGameWindow extends JFrame implements Runnable {
     }
 
     private void avaibleServersMouseClicked(MouseEvent e) {
-        String selectedServer = avaibleServers.getSelectedValue().toString();
-        String descText = "<html>Server name: " + selectedServer +
-                "<br>Server timeout: " + serverNamesTimeouts.get(selectedServer) + " sec</html>";
-        serversDesc.setText(descText);
+        if (avaibleServers.getSelectedValue() != null) {
+            String selectedServer = avaibleServers.getSelectedValue().toString();
+            String descText = "<html>Server name: " + selectedServer +
+                    "<br>Server timeout: " + serverNamesTimeouts.get(selectedServer) + " sec</html>";
+            serversDesc.setText(descText);
+        }
     }
 
     public String getServerID() {
