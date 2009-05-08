@@ -10,8 +10,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowFocusListener;
 import java.net.MalformedURLException;
+import java.util.Date;
 
 /**
  * Created by IntelliJ IDEA.
@@ -79,16 +79,19 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
         logger.debug("Showing frame");
         mainFrame.setVisible(true);
 
-        /*JDialog tempDialog = new TestDialog();
-        tempDialog.setVisible(true);*/
-        //mainFrame.add(tempDialog);
-
         logger.debug("Creating NewGame frame");
-        startGameFrame = new StartGameWindow(exchanger);
         new Thread(this, "Start MainGameWindow change").start();
+        startGameFrame = new StartGameWindow(exchanger);
         logger.debug("Showing NewGame frame...");
-        //startGameFrame.setModal(true);
         startGameFrame.setVisible(true);
+    }
+
+    private void someWait(){
+        long startTime = new Date().getTime();
+        long currTime = new Date().getTime();
+        while(currTime < startTime + 5000){
+            currTime = new Date().getTime();
+        }
     }
 
     //TODO make something with this terrible initConnection in many classes
@@ -208,6 +211,7 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
     private void refreshTable() {
         TableVisualization tableVisualization = new TableVisualization(plName, serverID, exchanger);
         activeCardsDesc.selectedCard = 0;
+        //tableVisualization.drawTable(activeCardsDesc, mainFrame, gameType);
         tableVisualization.drawTable(activeCardsDesc, mainFrame, gameType);
         new Thread(this, "Start TableVisualization change").start();
     }
