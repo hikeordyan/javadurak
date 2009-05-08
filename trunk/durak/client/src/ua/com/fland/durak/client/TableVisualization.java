@@ -28,6 +28,7 @@ public class TableVisualization implements Runnable {
     private static final Logger logger = Logger.getLogger(TableVisualization.class);
 
     private JFrame mainFrame;
+    //private JPanel mainFrame;
 
     private GridBagConstraints gbc;
     private GridBagLayout gridBag;
@@ -51,6 +52,8 @@ public class TableVisualization implements Runnable {
 
     private JButton submitButton;
 
+    private JLabel waitingLabel;
+
     private byte gameType;
 
     private byte plName;
@@ -68,6 +71,8 @@ public class TableVisualization implements Runnable {
     private GameServer gameServer;
 
     private FramesExchanger exchanger;
+
+    private boolean isSend = false;
 
     private final static byte LEADING = 0;
     private final static byte BEATING_OFF = 1;
@@ -87,6 +92,8 @@ public class TableVisualization implements Runnable {
 
     private final static int STATUS_LABEL_LENGTH = 500;
 
+    private int cardNum;
+
     public TableVisualization(byte plName, String serverID, FramesExchanger exchanger) {
         this.plName = plName;
         this.serverID = serverID;
@@ -99,6 +106,16 @@ public class TableVisualization implements Runnable {
         firstPLCardLabels = new ArrayList<JLabel>();
         secondPLCardLabels = new ArrayList<JLabel>();
         cardsOnTableLabels = new ArrayList<JLabel>();
+
+        ImageIcon waitEmptyIcon = new ImageIcon();
+        String waitEmptyName = "waitEmpty.gif";
+        if (getClass().getResource(waitEmptyName) != null) {
+            waitEmptyIcon = new ImageIcon(getClass().getResource(waitEmptyName));
+        } else {
+            logger.error("Cann't find file: " + waitEmptyName);
+        }
+        waitingLabel = new JLabel(waitEmptyIcon);
+
         statusLabel.setPreferredSize(new Dimension(STATUS_LABEL_LENGTH, 20));
         switch (gameType) {
             case LEADING:
@@ -110,9 +127,6 @@ public class TableVisualization implements Runnable {
             default:
                 logger.error("Unexpected gameType value: " + gameType);
         }
-        /*cardsOnTableValues = new ArrayList<CardDesc>();
-        firstPLCardsValues = new ArrayList<CardDesc>();*/
-        //tableActionProcess = new TableActionProcess(activeCardsDesc, activeCardsDesc.selectedCard, serverID, plName);
         isTurnWaiting = false;
 
         initConnection();
@@ -334,6 +348,10 @@ public class TableVisualization implements Runnable {
 
         gridBag.setConstraints(submitButton, gbc);
 
+        //adding wait animation
+        gbc.insets = new Insets(0, 40, 0, -40);
+        gridBag.setConstraints(waitingLabel, gbc);
+
         //adding status label
         gbc.insets = new Insets(0, 0, 0, -STATUS_LABEL_LENGTH);
         gbc.gridy = 6;
@@ -424,6 +442,8 @@ public class TableVisualization implements Runnable {
         mainFrame.remove(statusLabel);
         //mainFrame.removeAll();
 
+        //removing waiting label
+        mainFrame.remove(waitingLabel);
     }
 
     private Map<Integer, Integer> asortedFirstPLLabels() {
@@ -520,6 +540,9 @@ public class TableVisualization implements Runnable {
 
         //adding status label
         mainFrame.add(statusLabel);
+
+        //adding waiting label
+        mainFrame.add(waitingLabel);
     }
 
     //TODO make something with this terrible initConnection in many classes
@@ -544,47 +567,21 @@ public class TableVisualization implements Runnable {
     private void cardButtonPressed(int cardNum) {
         if (!isTurnWaiting) {
             if (activeCardsDesc.selectedCard == cardNum) {
-                boolean retryConnection = true;
-                ActiveCardsDesc tempActiveCardsDesc = new ActiveCardsDesc();
-                while (retryConnection) {
-                    try {
-                        tempActiveCardsDesc = gameServer.setLastMove(serverID, plName, cardNum);
-                        retryConnection = false;
-                    } catch (HessianRuntimeException hre) {
-                        retryConnection = noConnectionPrevention(hre);
-                    }
-                }
-                logger.debug("tempActiveCardsDesc.secondPLCardsNum" + tempActiveCardsDesc.secondPLCardsNum);
-                if (tempActiveCardsDesc.timeOutReached) {
-                    logger.debug("timeout reached. starting new game...");
-                    removeFrameElements();
-                    mainFrame.validate();
-                    JOptionPane.showMessageDialog(mainFrame, "<html><center>Game timeout reached.<br>YOU HAVE LOST!!!<br>Starting new game...</center></html>", "Condolence", JOptionPane.INFORMATION_MESSAGE);
-                    exchanger.put(END_GAME_REACHED);
+                logger.debug("setting visible");
+                ImageIcon waitAnimationIcon = new ImageIcon();
+                String waitAnimationName = "waitAnimation.gif";
+                if (getClass().getResource(waitAnimationName) != null) {
+                    waitAnimationIcon = new ImageIcon(getClass().getResource(waitAnimationName));
                 } else {
-                    if (isEndOfGame(tempActiveCardsDesc)) {
-                        logger.debug("end of game reached");
-                        removeFrameElements();
-                        mainFrame.validate();
-                        JOptionPane.showMessageDialog(mainFrame, "<html><center>YOU HAVE WON!!!<br>Starting new game...</center></html>", "Congratulation", JOptionPane.INFORMATION_MESSAGE);
-                        exchanger.put(END_GAME_REACHED);
-                    } else {
-                        if (tempActiveCardsDesc.cardsOnTable.size() != activeCardsDesc.cardsOnTable.size()) {
-                            logger.debug("tempActiveCardsDesc.secondPLCardsNum" + activeCardsDesc.secondPLCardsNum);
-                            activeCardsDesc = tempActiveCardsDesc;
-                            activeCardsDesc.selectedCard = sortFirstPLLabels().get(activeCardsDesc.selectedCard);
-                            logger.debug("redrawing table...");
-                            statusLabel.setText("STATUS: waiting for second player move...");
-                            drawTable(activeCardsDesc, mainFrame, gameType);
-                            new Thread(this, "Last move waiting thread").start();
-                        } else {
-                            activeCardsDesc = tempActiveCardsDesc;
-                            activeCardsDesc.selectedCard = sortFirstPLLabels().get(activeCardsDesc.selectedCard);
-                            logger.debug("redrawing table...");
-                            drawTable(activeCardsDesc, mainFrame, gameType);
-                        }
-                    }
+                    logger.error("Cann't find file: " + waitAnimationName);
                 }
+                waitingLabel.setIcon(waitAnimationIcon);
+                submitButton.setEnabled(false);
+                mainFrame.validate();
+                this.cardNum = cardNum;
+                isSend = true;
+                new Thread(this, "sending last move").start();
+                isSend = false;
             } else {
                 activeCardsDesc.selectedCard = cardNum;
                 drawTable(activeCardsDesc, mainFrame, gameType);
@@ -608,7 +605,6 @@ public class TableVisualization implements Runnable {
         }
 
         submitButton.addActionListener(new ActionListener() {
-            @Override
             public void actionPerformed(ActionEvent ae) {
                 logger.debug("submit button clicked");
                 changeGameType();
@@ -621,11 +617,11 @@ public class TableVisualization implements Runnable {
         switch (gameType) {
             case BEATING_OFF:
                 logger.debug("Taking cards...");
-                while(retryConnection){
-                    try{
+                while (retryConnection) {
+                    try {
                         activeCardsDesc = gameServer.setLastMove(serverID, plName, TAKE_CARDS);
                         retryConnection = false;
-                    }catch(HessianRuntimeException hre){
+                    } catch (HessianRuntimeException hre) {
                         retryConnection = noConnectionPrevention(hre);
                     }
                 }
@@ -633,15 +629,16 @@ public class TableVisualization implements Runnable {
                 logger.debug("redrawing table...");
                 statusLabel.setText("STATUS: waiting for second player move...");
                 drawTable(activeCardsDesc, mainFrame, gameType);
+                submitButton.setEnabled(false);
                 new Thread(this, "Last move waiting thread").start();
                 break;
             case LEADING:
                 logger.debug("End of leading...");
-                while(retryConnection){
-                    try{
+                while (retryConnection) {
+                    try {
                         activeCardsDesc = gameServer.setLastMove(serverID, plName, END_OF_LEADING);
                         retryConnection = false;
-                    }catch(HessianRuntimeException hre){
+                    } catch (HessianRuntimeException hre) {
                         retryConnection = noConnectionPrevention(hre);
                     }
                 }
@@ -650,6 +647,7 @@ public class TableVisualization implements Runnable {
                 statusLabel.setText("STATUS: waiting for second player move...");
                 drawTable(activeCardsDesc, mainFrame, gameType);
                 gameType = BEATING_OFF;
+                submitButton.setEnabled(false);
                 new Thread(this, "Last move waiting thread").start();
                 break;
             default:
@@ -684,53 +682,182 @@ public class TableVisualization implements Runnable {
         }
     }
 
-    public void run() {
-        logger.debug("Getting last move...");
-
-        isTurnWaiting = true;
+    private void sendSelectedCard() {
+        isSend = false;
         boolean retryConnection = true;
+        ActiveCardsDesc tempActiveCardsDesc = new ActiveCardsDesc();
         while (retryConnection) {
             try {
-                activeCardsDesc = gameServer.getActiveCards(serverID, plName);
+                logger.debug("setting visible");
+                ImageIcon waitAnimationIcon = new ImageIcon();
+                String waitAnimationName = "waitAnimation.gif";
+                if (getClass().getResource(waitAnimationName) != null) {
+                    waitAnimationIcon = new ImageIcon(getClass().getResource(waitAnimationName));
+                } else {
+                    logger.error("Cann't find file: " + waitAnimationName);
+                }
+                waitingLabel.setIcon(waitAnimationIcon);
+                //drawTable(activeCardsDesc, mainFrame, gameType);
+
+                tempActiveCardsDesc = gameServer.setLastMove(serverID, plName, cardNum);
+
+                ImageIcon waitEmptyIcon = new ImageIcon();
+                String waitEmptyName = "waitEmpty.gif";
+                if (getClass().getResource(waitEmptyName) != null) {
+                    waitEmptyIcon = new ImageIcon(getClass().getResource(waitEmptyName));
+                } else {
+                    logger.error("Cann't find file: " + waitEmptyName);
+                }
+                waitingLabel.setIcon(waitEmptyIcon);
+                submitButton.setEnabled(true);
                 retryConnection = false;
             } catch (HessianRuntimeException hre) {
                 retryConnection = noConnectionPrevention(hre);
             }
         }
-        if (activeCardsDesc.timeOutReached) {
-            JOptionPane.showMessageDialog(mainFrame, "<html><center>Game timeout reached.<br>YOU HAVE WON!!!<br>Starting new game...</center></html>", "Congratulation", JOptionPane.ERROR_MESSAGE);
+        logger.debug("tempActiveCardsDesc.secondPLCardsNum" + tempActiveCardsDesc.secondPLCardsNum);
+        if (tempActiveCardsDesc.timeOutReached) {
+            logger.debug("timeout reached. starting new game...");
             removeFrameElements();
             mainFrame.validate();
+            JOptionPane.showMessageDialog(mainFrame, "<html><center>Game timeout reached.<br>YOU HAVE LOST!!!<br>Starting new game...</center></html>", "Condolence", JOptionPane.INFORMATION_MESSAGE);
             exchanger.put(END_GAME_REACHED);
         } else {
-            if (activeCardsDesc.endOfGameReached) {
+            if (isEndOfGame(tempActiveCardsDesc)) {
                 logger.debug("end of game reached");
                 removeFrameElements();
                 mainFrame.validate();
-                JOptionPane.showMessageDialog(mainFrame, "<html><center>YOU HAVE LOST!!!<br>Starting new game...</center></html>", "Condolence", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(mainFrame, "<html><center>YOU HAVE WON!!!<br>Starting new game...</center></html>", "Congratulation", JOptionPane.INFORMATION_MESSAGE);
                 exchanger.put(END_GAME_REACHED);
             } else {
-                activeCardsDesc.selectedCard = sortFirstPLLabels().get(activeCardsDesc.selectedCard);
-                //checking if gameType changed
-                if (activeCardsDesc.cardsOnTable.size() == 0 & gameType == BEATING_OFF) {
-                    logger.debug("Changing game type...");
-                    gameType = LEADING;
+                if (tempActiveCardsDesc.cardsOnTable.size() != activeCardsDesc.cardsOnTable.size()) {
+                    logger.debug("tempActiveCardsDesc.secondPLCardsNum" + activeCardsDesc.secondPLCardsNum);
+                    activeCardsDesc = tempActiveCardsDesc;
+                    activeCardsDesc.selectedCard = sortFirstPLLabels().get(activeCardsDesc.selectedCard);
+                    logger.debug("redrawing table...");
+                    statusLabel.setText("STATUS: waiting for second player move...");
+                    drawTable(activeCardsDesc, mainFrame, gameType);
+                    submitButton.setEnabled(false);
+                    new Thread(this, "Last move waiting thread").start();
+                } else {
+                    activeCardsDesc = tempActiveCardsDesc;
+                    activeCardsDesc.selectedCard = sortFirstPLLabels().get(activeCardsDesc.selectedCard);
+                    logger.debug("redrawing table...");
+                    drawTable(activeCardsDesc, mainFrame, gameType);
                 }
-                logger.debug("Last move got, re-drawing table...");
-
-                switch (gameType) {
-                    case LEADING:
-                        statusLabel.setText("STATUS: leading, put next card or press End of turn button");
-                        break;
-                    case BEATING_OFF:
-                        statusLabel.setText("STATUS: beating off, put next card or press End of turn button");
-                        break;
-                    default:
-                        logger.error("Unexpected gameType value: " + gameType);
-                }
-                drawTable(activeCardsDesc, mainFrame, gameType);
-                isTurnWaiting = false;
             }
+        }
+    }
+
+    public void run() {
+        if (!isSend) {
+            logger.debug("Getting last move...");
+
+            isTurnWaiting = true;
+            boolean retryConnection = true;
+            while (retryConnection) {
+                try {
+                    activeCardsDesc = gameServer.getActiveCards(serverID, plName);
+                    retryConnection = false;
+                } catch (HessianRuntimeException hre) {
+                    retryConnection = noConnectionPrevention(hre);
+                }
+            }
+            submitButton.setEnabled(true);
+
+            if (activeCardsDesc.timeOutReached) {
+                JOptionPane.showMessageDialog(mainFrame, "<html><center>Game timeout reached.<br>YOU HAVE WON!!!<br>Starting new game...</center></html>", "Congratulation", JOptionPane.ERROR_MESSAGE);
+                removeFrameElements();
+                mainFrame.validate();
+                exchanger.put(END_GAME_REACHED);
+            } else {
+                if (activeCardsDesc.endOfGameReached) {
+                    logger.debug("end of game reached");
+                    removeFrameElements();
+                    mainFrame.validate();
+                    JOptionPane.showMessageDialog(mainFrame, "<html><center>YOU HAVE LOST!!!<br>Starting new game...</center></html>", "Condolence", JOptionPane.INFORMATION_MESSAGE);
+                    exchanger.put(END_GAME_REACHED);
+                } else {
+                    activeCardsDesc.selectedCard = sortFirstPLLabels().get(activeCardsDesc.selectedCard);
+                    //checking if gameType changed
+                    if (activeCardsDesc.cardsOnTable.size() == 0 & gameType == BEATING_OFF) {
+                        logger.debug("Changing game type...");
+                        gameType = LEADING;
+                    }
+                    logger.debug("Last move got, re-drawing table...");
+
+                    switch (gameType) {
+                        case LEADING:
+                            statusLabel.setText("STATUS: leading, put next card or press End of turn button");
+                            break;
+                        case BEATING_OFF:
+                            statusLabel.setText("STATUS: beating off, put next card or press End of turn button");
+                            break;
+                        default:
+                            logger.error("Unexpected gameType value: " + gameType);
+                    }
+                    drawTable(activeCardsDesc, mainFrame, gameType);
+                    isTurnWaiting = false;
+                }
+            }
+        } else {
+            sendSelectedCard();
+            /*isSend = false;
+            boolean retryConnection = true;
+            ActiveCardsDesc tempActiveCardsDesc = new ActiveCardsDesc();
+            while (retryConnection) {
+                try {
+                    logger.debug("setting visible");
+                    ImageIcon waitAnimationIcon = new ImageIcon();
+                    String waitAnimationName = "waitAnimation.gif";
+                    if (getClass().getResource(waitAnimationName) != null) {
+                        waitAnimationIcon = new ImageIcon(getClass().getResource(waitAnimationName));
+                    } else {
+                        logger.error("Cann't find file: " + waitAnimationName);
+                    }
+                    waitingLabel.setIcon(waitAnimationIcon);
+                    drawTable(activeCardsDesc, mainFrame, gameType);
+
+                    tempActiveCardsDesc = gameServer.setLastMove(serverID, plName, cardNum);
+                    //waitingLabel.setVisible(false);
+                    waitingLabel.setIcon(null);
+                    retryConnection = false;
+                } catch (HessianRuntimeException hre) {
+                    retryConnection = noConnectionPrevention(hre);
+                }
+            }
+            logger.debug("tempActiveCardsDesc.secondPLCardsNum" + tempActiveCardsDesc.secondPLCardsNum);
+            if (tempActiveCardsDesc.timeOutReached) {
+                logger.debug("timeout reached. starting new game...");
+                removeFrameElements();
+                mainFrame.validate();
+                JOptionPane.showMessageDialog(mainFrame, "<html><center>Game timeout reached.<br>YOU HAVE LOST!!!<br>Starting new game...</center></html>", "Condolence", JOptionPane.INFORMATION_MESSAGE);
+                exchanger.put(END_GAME_REACHED);
+            } else {
+                if (isEndOfGame(tempActiveCardsDesc)) {
+                    logger.debug("end of game reached");
+                    removeFrameElements();
+                    mainFrame.validate();
+                    JOptionPane.showMessageDialog(mainFrame, "<html><center>YOU HAVE WON!!!<br>Starting new game...</center></html>", "Congratulation", JOptionPane.INFORMATION_MESSAGE);
+                    exchanger.put(END_GAME_REACHED);
+                } else {
+                    if (tempActiveCardsDesc.cardsOnTable.size() != activeCardsDesc.cardsOnTable.size()) {
+                        logger.debug("tempActiveCardsDesc.secondPLCardsNum" + activeCardsDesc.secondPLCardsNum);
+                        activeCardsDesc = tempActiveCardsDesc;
+                        activeCardsDesc.selectedCard = sortFirstPLLabels().get(activeCardsDesc.selectedCard);
+                        logger.debug("redrawing table...");
+                        statusLabel.setText("STATUS: waiting for second player move...");
+                        drawTable(activeCardsDesc, mainFrame, gameType);
+                        submitButton.setEnabled(false);
+                        new Thread(this, "Last move waiting thread").start();
+                    } else {
+                        activeCardsDesc = tempActiveCardsDesc;
+                        activeCardsDesc.selectedCard = sortFirstPLLabels().get(activeCardsDesc.selectedCard);
+                        logger.debug("redrawing table...");
+                        drawTable(activeCardsDesc, mainFrame, gameType);
+                    }
+                }
+            }*/
         }
     }
 }
