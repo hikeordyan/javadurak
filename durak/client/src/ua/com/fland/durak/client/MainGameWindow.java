@@ -111,9 +111,9 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
 
     private void showStartNewGameWindow() {
         logger.debug("Creating NewGame frame");
+        new Thread(this, "Start MainGameWindow change").start();
         startGameFrame = new StartGameWindow(exchanger);
         logger.debug("Showing NewGame frame...");
-        new Thread(this, "Start MainGameWindow change").start();
         startGameFrame.setVisible(true);
     }
 
