@@ -47,8 +47,9 @@ public class StartGameWindow extends JDialog implements Runnable {
 
     private final static int NEW_GAME_CANCELED = 2;
     private final static int NEW_GAME_ACCEPTED = 3;
-    private final static int EXIT_GAME = 4;
+    private final static int EXIT_START_GAME = 4;
     private final static int JOIN_GAME_ACCEPTED = 5;
+    private final static int EXIT_GAME = 7;
 
     private String serverID;
 
@@ -80,11 +81,11 @@ public class StartGameWindow extends JDialog implements Runnable {
             avaibleServers.setListData(servers);
         } catch (HessianRuntimeException e) {
             logger.error("Cann't connect to 81.22.135.175:8080/gameServer " + e);
-            switch (JOptionPane.showConfirmDialog(this, "Cann't connect to game server. Check your firewall settings. Exit game?", "Error", JOptionPane.YES_NO_OPTION)) {
+            switch (JOptionPane.showConfirmDialog(this, "Cann't connect to game server. Check your firewall settings or in-game proxy settings. Exit game?", "Error", JOptionPane.YES_NO_OPTION)) {
                 case JOptionPane.YES_OPTION:
                     logger.debug("Closing  StartGame frame");
-                    this.setVisible(false);
                     mainGameWinExchanger.put(EXIT_GAME);
+                    this.setVisible(false);
                     this.dispose();
                     break;
             }
@@ -116,7 +117,7 @@ public class StartGameWindow extends JDialog implements Runnable {
     private void cancelButtonMouseClicked(MouseEvent e) {
         logger.debug("Closing  StartGame frame");
         this.setVisible(false);
-        mainGameWinExchanger.put(EXIT_GAME);
+        mainGameWinExchanger.put(EXIT_START_GAME);
         this.setModal(false);
         this.dispose();
     }

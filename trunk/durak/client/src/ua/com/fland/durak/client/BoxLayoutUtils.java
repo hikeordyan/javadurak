@@ -1,6 +1,6 @@
 package ua.com.fland.durak.client;
 
-import org.apache.log4j.Logger;
+import javax.swing.*;
 
 /**
  * Created by IntelliJ IDEA.<br>
@@ -26,23 +26,32 @@ import org.apache.log4j.Logger;
     along with this program.  If not, see <a href="http://www.gnu.org/licenses/">GNU Licenses</a><br>
  */
 
-public class FramesExchanger {
-
-    private static final Logger logger = Logger.getLogger(FramesExchanger.class);
-
-    private int res;
-
-    synchronized int get(){
-        try {
-            wait();
-        } catch (InterruptedException e) {
-            logger.error("Cann't wait()"+e);
+public class BoxLayoutUtils {
+    //makes the same alignment on XAxis for group of elements
+    public static void setGroupAlignmentX(JComponent[] cs, float alignment) {
+        for (int i = 0; i < cs.length; i++) {
+            cs[i].setAlignmentX(alignment);
         }
-        return res;
     }
 
-    synchronized void put(int res){
-        this.res = res;
-        notify();
+    //makes the same alignment on YAxis for group of elements
+    public static void setGroupAlignmentY(JComponent[] cs, float alignment) {
+        for (int i = 0; i < cs.length; i++) {
+            cs[i].setAlignmentY(alignment);
+        }
+    }
+
+    //returns panel with vertical elements placing
+    public static JPanel createVerticalPanel() {
+        JPanel p = new JPanel();
+        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
+        return p;
+    }
+
+    //returns panel with horizontal elements placing
+    public static JPanel createHorizontalPanel() {
+        JPanel p = new JPanel();
+        p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+        return p;
     }
 }
