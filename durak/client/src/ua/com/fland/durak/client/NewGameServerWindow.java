@@ -96,7 +96,7 @@ public class NewGameServerWindow extends JDialog implements Runnable {
 
     private void connectionExceptionCaught(HessianRuntimeException hre) {
         logger.error("Cann't connect to 81.22.135.175:8080/gameServer " + hre);
-        JOptionPane.showMessageDialog(this, "Cann't connect to game server. Check your firewall settings.", "Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Cann't connect to game server. Check your firewall settings or in-game proxy settings.", "Error", JOptionPane.ERROR_MESSAGE);
     }
 
     private void okButtonMouseClicked(MouseEvent e) {

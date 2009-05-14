@@ -8,17 +8,37 @@ import org.springframework.core.io.ClassPathResource;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.net.MalformedURLException;
 import java.util.Date;
 
 /**
- * Created by IntelliJ IDEA.
- * User: Fland
- * Date: 25.11.2008
- * Time: 21:30:09
+ * Created by IntelliJ IDEA.<br>
+ * User: maxim<br>
+ * Date: May 7, 2009<br>
+ * Time: 3:41:13 PM<br>
+ * <p/>
+ * <p/>
+ * DukarGameClient - client of on-line durak game<br>
+ * Copyright (C) 2009  Maxim Bondarenko<br>
+ * <p/>
+ * This program is free software: you can redistribute it and/or modify<br>
+ * it under the terms of the GNU General Public License as published by<br>
+ * the Free Software Foundation, either version 3 of the License, or<br>
+ * (at your option) any later version.<br>
+ * <br>
+ * This program is distributed in the hope that it will be useful,<br>
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of<br>
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the<br>
+ * GNU General Public License for more details.<br>
+ * <br>
+ * You should have received a copy of the GNU General Public License<br>
+ * along with this program.  If not, see <a href="http://www.gnu.org/licenses/">GNU Licenses</a><br>
  */
+
 public class MainGameWindow /*extends JFrame*/ implements Runnable {
     private static final Logger logger = Logger.getLogger(MainGameWindow.class);
 
@@ -52,7 +72,8 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
     private final static byte SECOND_PL = 2;
 
     private final static int NEW_GAME_ACCEPTED = 3;
-    private final static int EXIT_GAME = 4;
+    private final static int EXIT_START_GAME = 4;
+    private final static int EXIT_GAME = 7;
     private final static int JOIN_GAME_ACCEPTED = 5;
 
     private final static int END_GAME_REACHED = 6;
@@ -68,6 +89,7 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
         mainFrame.setSize(1024, 768);
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainFrame.getContentPane().setBackground(new Color(0, 150, 0));
+        initMenues();
 
         logger.debug("Setting other params");
         //getPrimaryNetworkData();
@@ -79,17 +101,77 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
         logger.debug("Showing frame");
         mainFrame.setVisible(true);
 
-        logger.debug("Creating NewGame frame");
+        /*logger.debug("Creating NewGame frame");
         new Thread(this, "Start MainGameWindow change").start();
         startGameFrame = new StartGameWindow(exchanger);
         logger.debug("Showing NewGame frame...");
+        startGameFrame.setVisible(true);*/
+        showStartNewGameWindow();
+    }
+
+    private void showStartNewGameWindow() {
+        logger.debug("Creating NewGame frame");
+        startGameFrame = new StartGameWindow(exchanger);
+        logger.debug("Showing NewGame frame...");
+        new Thread(this, "Start MainGameWindow change").start();
         startGameFrame.setVisible(true);
     }
 
-    private void someWait(){
+    private void initMenues() {
+        MenuBar mainMenuBar = new MenuBar();
+        Menu settingsMenu = new Menu("Settings", false);
+        MenuItem connectionSettingsMenu = new MenuItem("Connection settings");
+        connectionSettingsMenu.setEnabled(true);
+        connectionSettingsMenu.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ae) {
+                ConnectionSettingsDialog tempConnectionSettingsDialog = new ConnectionSettingsDialog(mainFrame);
+                tempConnectionSettingsDialog.setVisible(true);
+                tempConnectionSettingsDialog.setModal(true);
+            }
+        });
+        settingsMenu.add(connectionSettingsMenu);
+
+        Menu helpMenu = new Menu("Help", false);
+        MenuItem aboutGameMenu = new MenuItem("About");
+        aboutGameMenu.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ae) {
+                AboutDialog tempAboutDialog = new AboutDialog();
+                tempAboutDialog.setVisible(true);
+                tempAboutDialog.setModal(true);
+            }
+        });
+        helpMenu.add(aboutGameMenu);
+
+        Menu gameMenu = new Menu("Game", false);
+        MenuItem newGameMenu = new MenuItem("New game");
+        newGameMenu.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ae) {
+                showStartNewGameWindow();
+            }
+        });
+        gameMenu.add(newGameMenu);
+
+        gameMenu.addSeparator();
+
+        MenuItem exitGameMenu = new MenuItem("Exit game");
+        exitGameMenu.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ae) {
+                mainFrame.setVisible(false);
+                System.exit(0);
+            }
+        });
+        gameMenu.add(exitGameMenu);
+
+        mainMenuBar.add(gameMenu);
+        mainMenuBar.add(settingsMenu);
+        mainMenuBar.add(helpMenu);
+        mainFrame.setMenuBar(mainMenuBar);
+    }
+
+    private void someWait() {
         long startTime = new Date().getTime();
         long currTime = new Date().getTime();
-        while(currTime < startTime + 5000){
+        while (currTime < startTime + 5000) {
             currTime = new Date().getTime();
         }
     }
@@ -125,11 +207,12 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
         logger.debug("Showing frame");
         mainFrame.setVisible(true);
 
-        logger.debug("Creating NewGame frame");
+        /*logger.debug("Creating NewGame frame");
         startGameFrame = new StartGameWindow(exchanger);
         logger.debug("Showing NewGame frame...");
         new Thread(this, "Start MainGameWindow change").start();
-        startGameFrame.setVisible(true);
+        startGameFrame.setVisible(true);*/
+        showStartNewGameWindow();
     }
 
     private boolean noConnectionPrevention(HessianRuntimeException hre) {
@@ -137,7 +220,7 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
         Object[] options = {"Yes",
                 "No, exit the game"};
 
-        switch (JOptionPane.showOptionDialog(mainFrame, "Cann't connect to game server. Check your firewall settings. Retry connection?", "Error",
+        switch (JOptionPane.showOptionDialog(mainFrame, "Cann't connect to game server. Check your firewall settings or in-game proxy settings. Retry connection?", "Error",
                 JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE, null, options, options[1])) {
             case JOptionPane.YES_OPTION:
                 return true;
@@ -157,8 +240,15 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
         boolean retryConnection = true;
         switch (exchanger.get()) {
             case EXIT_GAME:
+                logger.debug("Exiting program");
                 mainFrame.setVisible(false);
                 System.exit(0);
+            case EXIT_START_GAME:
+                /*mainFrame.setVisible(false);
+                System.exit(0);*/
+                logger.debug("Closing startNewGame dialog");
+                startGameFrame.setVisible(false);
+                startGameFrame.dispose();
                 break;
             case JOIN_GAME_ACCEPTED:
                 plName = SECOND_PL;
