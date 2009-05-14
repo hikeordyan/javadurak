@@ -33,7 +33,7 @@ public class DurakGame {
 
     public static void main(String[] args) {
         logger.debug("***App started***");
-        logger.debug("DurakGameClient ver.0.9.5 rev.45");
+        logger.debug("DurakGameClient ver.0.9.5 rev.46");
 
         logger.debug("Init and show main window");
         SwingUtilities.invokeLater(new Runnable() {
