@@ -167,9 +167,11 @@ public class TableVisualization implements Runnable {
 
         //setting up cards
         removeFrameElements();
-        createCardButtons();
+        /*createCardButtons();
         placeCards();
-        addCardsToTable();
+        addCardsToTable();*/
+        TableInit tempTableInit = new TableInit();
+        tempTableInit.placeElements(submitButton, waitingLabel, activeCardsDesc, mainFrame);
 
         this.mainFrame.validate();
         this.mainFrame.repaint();
@@ -215,7 +217,7 @@ public class TableVisualization implements Runnable {
         //creating cardsOnTable
         cardsOnTableLabels = new ArrayList<JLabel>();
         for (int i = 0; i < activeCardsDesc.cardsOnTable.size(); i++) {
-            cardIconName = cardIconsPath + "card" + activeCardsDesc.cardsOnTable.get(i) + activeCardsDesc.cardsOnTable.get(++i) + ".GIF";
+            cardIconName = cardIconsPath + "card" + activeCardsDesc.cardsOnTable.get(i) + activeCardsDesc.cardsOnTable.get(++i) + ".gif";
             //++i;
 
             if (getClass().getResource(cardIconName) != null) {
