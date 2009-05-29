@@ -3,9 +3,17 @@ package ua.com.fland.durak.client;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 
 /**
  * Created by IntelliJ IDEA.<br>
@@ -37,9 +45,11 @@ public class AboutDialog extends JDialog {
     private JLabel textInfo;
     private JButton okButton;
     private JPanel mainPanel;
+    private JTextArea licenseText;
+
 
     public AboutDialog() {
-        this.setSize(new Dimension(400, 140));
+        this.setSize(new Dimension(550, 240));
         this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         this.setResizable(false);
         this.setLocationRelativeTo(getOwner());
@@ -67,6 +77,20 @@ public class AboutDialog extends JDialog {
 
         okButton = new JButton("OK");
         okButton.setAlignmentX(CENTER_ALIGNMENT);
+        
+        String license = "";
+        InputStream inputStream =getClass().getResourceAsStream("COPYING");
+        try {
+            license = IOUtils.toString(inputStream);
+        } catch (IOException e) {
+            logger.error ("cann't open file " + e);
+            license = "Cann't open open file COPYING with license";
+        }
+
+
+        licenseText = new JTextArea(license);
+        licenseText.setWrapStyleWord(true);
+        licenseText.setEditable(false);
 
         mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
@@ -87,6 +111,12 @@ public class AboutDialog extends JDialog {
 
     private void placeElements() {
         mainPanel.add(textInfo);
+
+        //adding license
+        JScrollPane scrollPane = new JScrollPane(licenseText);
+        mainPanel.add(scrollPane);
+        //end
+
         mainPanel.add(okButton);
     }
 }

@@ -184,7 +184,7 @@ public class TableVisualization implements Runnable {
         ImageIcon cardIcon = new ImageIcon();
         Border emptyBorder = BorderFactory.createEmptyBorder();
         for (int i = 0; i < activeCardsDesc.firstPLCards.size(); i++) {
-            cardIconName = cardIconsPath + "card" + activeCardsDesc.firstPLCards.get(i) + activeCardsDesc.firstPLCards.get(++i) + ".GIF";
+            cardIconName = cardIconsPath + "card" + activeCardsDesc.firstPLCards.get(i) + activeCardsDesc.firstPLCards.get(++i) + ".gif";
             //++i;
 
             if (getClass().getResource(cardIconName) != null) {
@@ -230,7 +230,7 @@ public class TableVisualization implements Runnable {
         }
 
         //creating empty places
-        cardIconName = "cardIcons/emptyCardPlace.GIF";
+        cardIconName = "cardIcons/emptyCardPlace.gif";
         if (getClass().getResource(cardIconName) != null) {
             cardIcon = new ImageIcon(getClass().getResource(cardIconName));
         } else {
