@@ -86,6 +86,7 @@ public class TableInit {
         if (activeCardsDesc.firstPLCards.size() < 13) {
             firstPLCardsPanel.add(Box.createRigidArea(new Dimension(0, 200)));
         }
+        
         List<JLabel> firstPLCardLabels = new ArrayList<JLabel>();
         for (int i=0; i<activeCardsDesc.firstPLCards.size(); i++){
             cardIconName = cardIconsPath + "card" + activeCardsDesc.firstPLCards.get(i) + activeCardsDesc.firstPLCards.get(++i) + ".gif";
