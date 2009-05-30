@@ -171,7 +171,13 @@ public class TableVisualization implements Runnable {
         placeCards();
         addCardsToTable();*/
         TableInit tempTableInit = new TableInit();
-        tempTableInit.placeElements(submitButton, waitingLabel, activeCardsDesc, mainFrame);
+        TableElementsDesc tempTableElementsDesc = tempTableInit.placeElements(submitButton, waitingLabel, activeCardsDesc, mainFrame);
+        firstPLCardLabels = new ArrayList<JLabel>();
+        firstPLCardLabels = tempTableElementsDesc.firstPLCardLabels;
+        secondPLCardLabels = new ArrayList<JLabel>();
+        secondPLCardLabels = tempTableElementsDesc.secondPLCardLabels;
+        cardsOnTableLabels = new ArrayList<JLabel>();
+        cardsOnTableLabels = tempTableElementsDesc.cardsOnTableLabels;
 
         this.mainFrame.validate();
         this.mainFrame.repaint();
