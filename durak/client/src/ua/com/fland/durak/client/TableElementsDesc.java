@@ -32,4 +32,12 @@ public class TableElementsDesc {
     public List<JLabel> cardsOnTableLabels;
     public List<JLabel> secondPLCardLabels;
     public JLabel statusLabel = new JLabel("STATUS: no status yet");
+    public JButton submitButton;
+
+    public TableElementsDesc(List<JLabel> firstPLCardLabels, List<JLabel> cardsOnTableLabels, List<JLabel> secondPLCardLabels, JButton submitButton) {
+        this.firstPLCardLabels = firstPLCardLabels;
+        this.cardsOnTableLabels = cardsOnTableLabels;
+        this.secondPLCardLabels = secondPLCardLabels;
+        this.submitButton = submitButton;
+    }
 }
