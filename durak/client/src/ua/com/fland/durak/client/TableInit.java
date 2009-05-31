@@ -6,7 +6,11 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 import java.awt.*;
+import java.awt.image.FilteredImageSource;
+import java.awt.image.ImageFilter;
 
 /**
  * Created by IntelliJ IDEA.<br>
@@ -36,62 +40,106 @@ public class TableInit {
     private static final Logger logger = Logger.getLogger(TableInit.class);
     private static final String cardIconsPath = "cardIcons/";
 
+    private JPanel mainPanel;
+
+    public TableInit() {
+        mainPanel = BoxLayoutUtils.createVerticalPanel();
+        mainPanel.setBackground(new Color(0, 150, 0));
+    }
+
     public TableElementsDesc placeElements(JButton submitButton, JLabel waitingLabel,
-                                           ActiveCardsDesc activeCardsDesc, JFrame mainFrame) {
+                                           ActiveCardsDesc activeCardsDesc, JPanel mainPanel, JLabel statusLabel) {
+        this.mainPanel = mainPanel;
         logger.debug("Starting elemetns placing...");
+        this.mainPanel = BoxLayoutUtils.createVerticalPanel();
+        this.mainPanel.setBackground(new Color(0, 150, 0));
 
         //placing secondPL cards
-        List<JLabel> secondPLCardLabels = new ArrayList<JLabel>();
-        ImageIcon cardIcon = new ImageIcon();
-        String cardIconName = cardIconsPath + "cover.gif";
-        if (getClass().getResource(cardIconName) != null) {
-            cardIcon = new ImageIcon(getClass().getResource(cardIconName));
-        } else {
-            logger.error("Cann't find file: " + cardIconName);
+        List<JLabel> secondPLCardLabels = placeSecondPLCards(activeCardsDesc.secondPLCardsNum);
+        //placing cardsOnTable
+        List<JLabel> cardsOnTableLabels = placeCardsOnTable(activeCardsDesc.cardsOnTable);
+        //placing firstPl cards
+        List<JLabel> firstPLCardLabels = placeFirstPLCards(activeCardsDesc.firstPLCards, activeCardsDesc.selectedCard);
+
+        //placing submitButton and waiting animation
+        JPanel buttonPanel = BoxLayoutUtils.createHorizontalPanel();
+        buttonPanel.setOpaque(false);
+        buttonPanel.add(submitButton);
+        buttonPanel.add(waitingLabel);
+
+        this.mainPanel.add(buttonPanel);
+        //statusLabel.setAlignmentX(JLabel.LEFT_ALIGNMENT);
+        //TODO make left alignment for status label
+        this.mainPanel.add(statusLabel);
+
+        return new TableElementsDesc(firstPLCardLabels, cardsOnTableLabels, secondPLCardLabels, submitButton, this.mainPanel);
+    }
+
+    private Map<Integer, Integer> sortFirstPLLabels(List<Integer> PLCards) {
+        /**
+         * key - sorted nomber, value - nomber in lables
+         */
+        Map<Integer, Integer> sortedValues = new HashMap<Integer, Integer>();
+
+        int firstPlCardsNum = PLCards.size() / 2;
+
+        for (int i = 0; i < firstPlCardsNum; i++) {
+            sortedValues.put(i, i);
         }
 
-        JPanel secondPLCardsPanel = BoxLayoutUtils.createVerticalPanel();
-        JPanel firstCardsLabelRow = BoxLayoutUtils.createHorizontalPanel();
-        JPanel secondCardsLabelRow = BoxLayoutUtils.createHorizontalPanel();
+        List<CardDesc> tempCardsDesc = new ArrayList<CardDesc>();
+        for (int i = 0; i < PLCards.size(); i++) {
+            CardDesc tempCardDesc = new CardDesc();
+            tempCardDesc.cardSuit = PLCards.get(i);
+            i++;
+            tempCardDesc.cardValue = PLCards.get(i);
+            tempCardsDesc.add(tempCardDesc);
+        }
 
-        Border emptyBorder = BorderFactory.createEmptyBorder();
-        int cardNum = activeCardsDesc.secondPLCardsNum;
-        if (activeCardsDesc.secondPLCardsNum < 13) {
-            logger.debug("creating free space...");
-            secondCardsLabelRow.add(Box.createRigidArea(new Dimension(0, 110)));
-        } else {
-            cardNum = 12;
-            for (int i = 12; i < activeCardsDesc.secondPLCardsNum; i++) {
-                JLabel tempCard = new JLabel(cardIcon);
-                tempCard.setBorder(emptyBorder);
-                tempCard.setAlignmentY(JLabel.BOTTOM_ALIGNMENT);
-                secondPLCardLabels.add(tempCard);
-                secondCardsLabelRow.add(tempCard);
-                secondCardsLabelRow.add(Box.createRigidArea(new Dimension(10, 0)));
+
+        for (int i = 0; i < firstPlCardsNum - 2; i++) {
+            for (int j = 0; j < firstPlCardsNum - 1; j++) {
+                if (tempCardsDesc.get(sortedValues.get(j + 1)).cardSuit > tempCardsDesc.get(sortedValues.get(j)).cardSuit) {
+                    int tempValue = sortedValues.get(j);
+                    sortedValues.put(j, sortedValues.get(j + 1));
+                    sortedValues.put(j + 1, tempValue);
+                } else {
+                    if ((tempCardsDesc.get(sortedValues.get(j + 1)).cardSuit == tempCardsDesc.get(sortedValues.get(j)).cardSuit) &
+                            (tempCardsDesc.get(sortedValues.get(j + 1)).cardValue > tempCardsDesc.get(sortedValues.get(j)).cardValue)) {
+                        int tempValue = sortedValues.get(j);
+                        sortedValues.put(j, sortedValues.get(j + 1));
+                        sortedValues.put(j + 1, tempValue);
+                    }
+                }
             }
         }
-        for (int i = 0; i < cardNum; i++) {
-            JLabel tempCard = new JLabel(cardIcon);
-            tempCard.setBorder(emptyBorder);
-            tempCard.setAlignmentY(JLabel.BOTTOM_ALIGNMENT);
-            secondPLCardLabels.add(tempCard);
-            firstCardsLabelRow.add(tempCard);
-            firstCardsLabelRow.add(Box.createRigidArea(new Dimension(10, 0)));
+
+        return sortedValues;
+    }
+
+    private Map<Integer, Integer> asortedFirstPLLabels(List<Integer> PLCards) {
+        Map<Integer, Integer> asortedFirstPlValues = new HashMap<Integer, Integer>();
+        Map<Integer, Integer> sortedFirstPlValues = sortFirstPLLabels(PLCards);
+
+        for (int i = 0; i < PLCards.size() / 2; i++) {
+            asortedFirstPlValues.put(sortedFirstPlValues.get(i), i);
         }
+        return asortedFirstPlValues;
+    }
 
-        secondPLCardsPanel.add(secondCardsLabelRow);
-        secondPLCardsPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-        secondPLCardsPanel.add(firstCardsLabelRow);
-
-        //placing cardsOnTable
-        JPanel cardsOnTablePanel = BoxLayoutUtils.createVerticalPanel();
-        if (activeCardsDesc.cardsOnTable.size() < 1) {
-            logger.debug("crating free space for cardsOnTable");
+    private List<JLabel> placeCardsOnTable(List<Integer> cardsOnTable) {
+        JPanel cardsOnTablePanel = BoxLayoutUtils.createHorizontalPanel();
+        cardsOnTablePanel.setOpaque(false);
+        if (cardsOnTable.size() < 1) {
+            logger.debug("creating free space for cardsOnTable");
             cardsOnTablePanel.add(Box.createRigidArea(new Dimension(0, 105)));
         }
         List<JLabel> cardsOnTableLabels = new ArrayList<JLabel>();
-        for (int i = 0; i < activeCardsDesc.cardsOnTable.size(); i++) {
-            cardIconName = cardIconsPath + "card" + activeCardsDesc.cardsOnTable.get(i) + activeCardsDesc.cardsOnTable.get(++i) + ".gif";
+        ImageIcon cardIcon = new ImageIcon();
+        String cardIconName;
+        Border emptyBorder = BorderFactory.createEmptyBorder();
+        for (int i = 0; i < cardsOnTable.size(); i++) {
+            cardIconName = cardIconsPath + "card" + cardsOnTable.get(i) + cardsOnTable.get(++i) + ".gif";
             if (getClass().getResource(cardIconName) != null) {
                 cardIcon = new ImageIcon(getClass().getResource(cardIconName));
             } else {
@@ -104,36 +152,27 @@ public class TableInit {
             cardsOnTablePanel.add(tempCard);
             cardsOnTablePanel.add(Box.createRigidArea(new Dimension(10, 0)));
         }
+        mainPanel.add(cardsOnTablePanel);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
 
-        //placing firstPl cards
+        return cardsOnTableLabels;
+    }
+
+    private List<JLabel> placeFirstPLCards(List<Integer> firstPLCards, int selectedCard) {
         JPanel firstPLCardsPanel = BoxLayoutUtils.createVerticalPanel();
-        firstCardsLabelRow = BoxLayoutUtils.createHorizontalPanel();
-        secondCardsLabelRow = BoxLayoutUtils.createHorizontalPanel();
+        firstPLCardsPanel.setOpaque(false);
+        JPanel firstCardsLabelRow = BoxLayoutUtils.createHorizontalPanel();
+        firstCardsLabelRow.setOpaque(false);
+        JPanel secondCardsLabelRow = BoxLayoutUtils.createHorizontalPanel();
+        secondCardsLabelRow.setOpaque(false);
         List<JLabel> firstPLCardLabels = new ArrayList<JLabel>();
-        cardNum = activeCardsDesc.firstPLCards.size();
-        if (activeCardsDesc.firstPLCards.size() < 25) {
-            logger.debug("creating empty row in firstPLCards");
-            secondCardsLabelRow.add(Box.createRigidArea(new Dimension(0, 110)));
-        } else {
-            cardNum = 24;
-            for (int i = 24; i < activeCardsDesc.firstPLCards.size(); i++) {
-                cardIconName = cardIconsPath + "card" + activeCardsDesc.firstPLCards.get(i) + activeCardsDesc.firstPLCards.get(++i) + ".gif";
-                if (getClass().getResource(cardIconName) != null) {
-                    cardIcon = new ImageIcon(getClass().getResource(cardIconName));
-                } else {
-                    logger.error("Cann't find file: " + cardIconName);
-                }
+        ImageIcon cardIcon = new ImageIcon();
+        String cardIconName;
+        Border emptyBorder = BorderFactory.createEmptyBorder();
 
-                JLabel tempCard = new JLabel(cardIcon);
-                tempCard.setBorder(emptyBorder);
-                tempCard.setAlignmentY(JLabel.BOTTOM_ALIGNMENT);
-                firstPLCardLabels.add(tempCard);
-                secondCardsLabelRow.add(tempCard);
-                secondCardsLabelRow.add(Box.createRigidArea(new Dimension(10, 0)));
-            }
-        }
-        for (int i = 0; i < cardNum; i++) {
-            cardIconName = cardIconsPath + "card" + activeCardsDesc.firstPLCards.get(i) + activeCardsDesc.firstPLCards.get(++i) + ".gif";
+        //creating cardsLabels
+        for (int i = 0; i < firstPLCards.size(); i++) {
+            cardIconName = cardIconsPath + "card" + firstPLCards.get(i) + firstPLCards.get(++i) + ".gif";
             if (getClass().getResource(cardIconName) != null) {
                 cardIcon = new ImageIcon(getClass().getResource(cardIconName));
             } else {
@@ -142,34 +181,104 @@ public class TableInit {
 
             JLabel tempCard = new JLabel(cardIcon);
             tempCard.setBorder(emptyBorder);
-            tempCard.setAlignmentY(JLabel.TOP_ALIGNMENT);
+            tempCard.setAlignmentY(JLabel.BOTTOM_ALIGNMENT);
             firstPLCardLabels.add(tempCard);
-            firstCardsLabelRow.add(tempCard);
+        }
+
+        Map<Integer, Integer> sortedValues = sortFirstPLLabels(firstPLCards);
+        Map<Integer, Integer> asortedValues = asortedFirstPLLabels(firstPLCards);
+
+        int cardNum = sortedValues.size();
+        if (cardNum < 13) {
+            logger.debug("creating empty row in firstPLCards");
+            secondCardsLabelRow.add(Box.createRigidArea(new Dimension(0, 110)));
+        } else {
+            for (int i = 12; i < cardNum; i++) {
+                JPanel tempVertPanel = BoxLayoutUtils.createVerticalPanel();
+                tempVertPanel.setOpaque(false);
+                if (i == asortedValues.get(selectedCard)) {
+                    tempVertPanel.add(firstPLCardLabels.get(sortedValues.get(i)));
+                    tempVertPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+                } else {
+                    tempVertPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+                    tempVertPanel.add(firstPLCardLabels.get(sortedValues.get(i)));
+                }
+                secondCardsLabelRow.add(tempVertPanel);
+                secondCardsLabelRow.add(Box.createRigidArea(new Dimension(10, 0)));
+            }
+            cardNum = 12;
+        }
+
+        for (int i = 0; i < cardNum; i++) {
+            JPanel tempVertPanel = BoxLayoutUtils.createVerticalPanel();
+            tempVertPanel.setOpaque(false);
+            if (i == asortedValues.get(selectedCard)) {
+                tempVertPanel.add(firstPLCardLabels.get(sortedValues.get(i)));
+                tempVertPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+            } else {
+                tempVertPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+                tempVertPanel.add(firstPLCardLabels.get(sortedValues.get(i)));
+            }
+            firstCardsLabelRow.add(tempVertPanel);
             firstCardsLabelRow.add(Box.createRigidArea(new Dimension(10, 0)));
         }
 
         firstPLCardsPanel.add(firstCardsLabelRow);
         firstPLCardsPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         firstPLCardsPanel.add(secondCardsLabelRow);
+        mainPanel.add(firstPLCardsPanel);
 
-        //placing submitButton and waiting animation
-        JPanel buttonPanel = BoxLayoutUtils.createVerticalPanel();
-        buttonPanel.add(submitButton);
-        //buttonPanel.add
+        return firstPLCardLabels;
+    }
 
-        JPanel mainPanel = BoxLayoutUtils.createVerticalPanel();
-        mainPanel.setBackground(new Color(0, 150, 0));
+    private List<JLabel> placeSecondPLCards(int secondPLCardsNum) {
+        //placing secondPL cards
+        ImageIcon cardIcon = new ImageIcon();
+        String cardIconName = cardIconsPath + "cover.gif";
+        if (getClass().getResource(cardIconName) != null) {
+            cardIcon = new ImageIcon(getClass().getResource(cardIconName));
+        } else {
+            logger.error("Cann't find file: " + cardIconName);
+        }
+
+        //creating secondPL labels
+        List<JLabel> secondPLCardLabels = new ArrayList<JLabel>();
+        Border emptyBorder = BorderFactory.createEmptyBorder();
+        for (int i = 0; i < secondPLCardsNum; i++) {
+            JLabel tempCard = new JLabel(cardIcon);
+            tempCard.setBorder(emptyBorder);
+            tempCard.setAlignmentY(JLabel.BOTTOM_ALIGNMENT);
+            secondPLCardLabels.add(tempCard);
+        }
+
+        JPanel secondPLCardsPanel = BoxLayoutUtils.createVerticalPanel();
+        secondPLCardsPanel.setOpaque(false);
+        JPanel firstCardsLabelRow = BoxLayoutUtils.createHorizontalPanel();
+        firstCardsLabelRow.setOpaque(false);
+        JPanel secondCardsLabelRow = BoxLayoutUtils.createHorizontalPanel();
+        secondCardsLabelRow.setOpaque(false);
+        int cardNum = secondPLCardsNum;
+        if (secondPLCardsNum < 13) {
+            logger.debug("creating free space...");
+            secondCardsLabelRow.add(Box.createRigidArea(new Dimension(0, 110)));
+        } else {
+            cardNum = 12;
+            for (int i = 12; i < secondPLCardsNum; i++) {
+                secondCardsLabelRow.add(secondPLCardLabels.get(i));
+                secondCardsLabelRow.add(Box.createRigidArea(new Dimension(10, 0)));
+            }
+        }
+        for (int i = 0; i < cardNum; i++) {
+            firstCardsLabelRow.add(secondPLCardLabels.get(i));
+            firstCardsLabelRow.add(Box.createRigidArea(new Dimension(10, 0)));
+        }
+
+        secondPLCardsPanel.add(secondCardsLabelRow);
+        secondPLCardsPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        secondPLCardsPanel.add(firstCardsLabelRow);
         mainPanel.add(secondPLCardsPanel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-        mainPanel.add(cardsOnTablePanel);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-        mainPanel.add(firstPLCardsPanel);
-        mainPanel.add(buttonPanel);
 
-        mainFrame.add(mainPanel);
-
-        TableElementsDesc tempTableElementsDesc = new TableElementsDesc(firstPLCardLabels, cardsOnTableLabels, secondPLCardLabels, submitButton);
-
-        return tempTableElementsDesc;
+        return secondPLCardLabels;
     }
 }

@@ -46,7 +46,7 @@ public class TableVisualization implements Runnable {
     private static final Logger logger = Logger.getLogger(TableVisualization.class);
 
     private JFrame mainFrame;
-    //private JPanel mainFrame;
+    private JPanel mainPanel;
 
     private GridBagConstraints gbc;
     private GridBagLayout gridBag;
@@ -67,6 +67,7 @@ public class TableVisualization implements Runnable {
     //private TableActionProcess tableActionProcess;
 
     private ActiveCardsDesc activeCardsDesc;
+    private TableInit tableInit;
 
     private JButton submitButton;
 
@@ -132,6 +133,8 @@ public class TableVisualization implements Runnable {
         firstPLCardLabels = new ArrayList<JLabel>();
         secondPLCardLabels = new ArrayList<JLabel>();
         cardsOnTableLabels = new ArrayList<JLabel>();
+        tableInit = new TableInit();
+        mainPanel = new JPanel();
 
         ImageIcon waitEmptyIcon = new ImageIcon();
         String waitEmptyName = "waitEmpty.gif";
@@ -170,255 +173,19 @@ public class TableVisualization implements Runnable {
         /*createCardButtons();
         placeCards();
         addCardsToTable();*/
-        TableInit tempTableInit = new TableInit();
-        TableElementsDesc tempTableElementsDesc = tempTableInit.placeElements(submitButton, waitingLabel, activeCardsDesc, mainFrame);
+        TableElementsDesc tempTableElementsDesc = tableInit.placeElements(submitButton, waitingLabel, activeCardsDesc, mainPanel, statusLabel);
         firstPLCardLabels = new ArrayList<JLabel>();
         firstPLCardLabels = tempTableElementsDesc.firstPLCardLabels;
         secondPLCardLabels = new ArrayList<JLabel>();
         secondPLCardLabels = tempTableElementsDesc.secondPLCardLabels;
         cardsOnTableLabels = new ArrayList<JLabel>();
         cardsOnTableLabels = tempTableElementsDesc.cardsOnTableLabels;
+        mainPanel = tempTableElementsDesc.mainPanel;
+        this.mainFrame.add(mainPanel);
+        createItemsListeners(firstPLCardLabels);
 
         this.mainFrame.validate();
         this.mainFrame.repaint();
-    }
-
-    private void createCardButtons() {
-        //creating firstPL buttons
-        firstPLCardLabels = new ArrayList<JLabel>();
-        JLabel tempLabel;
-        String cardIconName;
-        String cardIconsPath = "cardIcons/";
-        ImageIcon cardIcon = new ImageIcon();
-        Border emptyBorder = BorderFactory.createEmptyBorder();
-        for (int i = 0; i < activeCardsDesc.firstPLCards.size(); i++) {
-            cardIconName = cardIconsPath + "card" + activeCardsDesc.firstPLCards.get(i) + activeCardsDesc.firstPLCards.get(++i) + ".gif";
-            //++i;
-
-            if (getClass().getResource(cardIconName) != null) {
-                cardIcon = new ImageIcon(getClass().getResource(cardIconName));
-            } else {
-                logger.error("Cann't find file: " + cardIconName);
-            }
-
-            tempLabel = new JLabel(cardIcon);
-            tempLabel.setBorder(emptyBorder);
-            firstPLCardLabels.add(tempLabel);
-        }
-
-        //creating secondPLCards
-        secondPLCardLabels = new ArrayList<JLabel>();
-        cardIconName = cardIconsPath + "cover.gif";
-        if (getClass().getResource(cardIconName) != null) {
-            cardIcon = new ImageIcon(getClass().getResource(cardIconName));
-        } else {
-            logger.error("Cann't find file: " + cardIconName);
-        }
-        for (int i = 0; i < activeCardsDesc.secondPLCardsNum; i++) {
-            tempLabel = new JLabel(cardIcon);
-            tempLabel.setBorder(emptyBorder);
-            secondPLCardLabels.add(tempLabel);
-        }
-
-        //creating cardsOnTable
-        cardsOnTableLabels = new ArrayList<JLabel>();
-        for (int i = 0; i < activeCardsDesc.cardsOnTable.size(); i++) {
-            cardIconName = cardIconsPath + "card" + activeCardsDesc.cardsOnTable.get(i) + activeCardsDesc.cardsOnTable.get(++i) + ".gif";
-            //++i;
-
-            if (getClass().getResource(cardIconName) != null) {
-                cardIcon = new ImageIcon(getClass().getResource(cardIconName));
-            } else {
-                logger.error("Cann't find file: " + cardIconName);
-            }
-
-            tempLabel = new JLabel(cardIcon);
-            tempLabel.setBorder(emptyBorder);
-            cardsOnTableLabels.add(tempLabel);
-        }
-
-        //creating empty places
-        cardIconName = "cardIcons/emptyCardPlace.gif";
-        if (getClass().getResource(cardIconName) != null) {
-            cardIcon = new ImageIcon(getClass().getResource(cardIconName));
-        } else {
-            logger.error("Cann't find file: " + cardIconName);
-        }
-
-        firstFirstRawEmptyCardPlace = new JButton(cardIcon);
-        firstFirstRawEmptyCardPlace.setBorder(emptyBorder);
-        secondFirstRawEmptyCardPlace = new JButton(cardIcon);
-        secondFirstRawEmptyCardPlace.setBorder(emptyBorder);
-        tableEmptyCardPlace = new JButton(cardIcon);
-        tableEmptyCardPlace.setBorder(emptyBorder);
-        firstSecondRawEmptyCardPlace = new JButton(cardIcon);
-        firstSecondRawEmptyCardPlace.setBorder(emptyBorder);
-        secondSecondRawEmptyCardPlace = new JButton(cardIcon);
-        secondSecondRawEmptyCardPlace.setBorder(emptyBorder);
-
-        createItemsListeners(firstPLCardLabels, cardsOnTableLabels, activeCardsDesc);
-    }
-
-    private void placeCards() {
-        //general settings
-        gbc.weighty = 1.0;
-        gbc.insets = new Insets(4, 4, 0, 0);
-        gbc.anchor = GridBagConstraints.NORTHWEST;
-        gbc.ipadx = 0;
-
-        //placing cards
-
-        int maxCardNumber = firstPLCardLabels.size();
-        if (maxCardNumber < activeCardsDesc.secondPLCardsNum) {
-            maxCardNumber = activeCardsDesc.secondPLCardsNum;
-        }
-        if (maxCardNumber < cardsOnTableLabels.size()) {
-            maxCardNumber = cardsOnTableLabels.size();
-        }
-
-        boolean isSecond = false;
-        final int topCardPos = 8;
-        final int bottomCardPos = -4;
-        int verticalCardPos;
-
-        //sorting
-        Map<Integer, Integer> sortedValues = sortFirstPLLabels();
-        Map<Integer, Integer> asortedValues = asortedFirstPLLabels();
-
-        for (int i = 0; i < maxCardNumber; i++) {
-            //counting isSecond parameter if somebody player cards greater then 12
-            if ((i > 11) & (cardsOnTableLabels.size() > i - 12)) {
-                if (i == 12) {
-                    isSecond = false;
-                } else {
-                    isSecond = !isSecond;
-                }
-            }
-
-            //firstPLCards
-            if (i < firstPLCardLabels.size()) {
-                int reducedTableCards;
-
-                if (i > 11) {
-                    gbc.gridy = 4;
-
-                    reducedTableCards = cardsOnTableLabels.size() + 12;
-                } else {
-                    gbc.gridy = 3;
-
-                    reducedTableCards = cardsOnTableLabels.size();
-                }
-
-                if (i == asortedValues.get(activeCardsDesc.selectedCard)) {
-                    //if (i == activeCardsDesc.selectedCard) {
-                    verticalCardPos = bottomCardPos;
-                } else {
-                    verticalCardPos = topCardPos;
-                }
-
-                if (i <= reducedTableCards) {
-                    if (!isSecond) {
-                        gbc.insets = new Insets(verticalCardPos, 0, 0, 0);
-                    } else {
-                        gbc.insets = new Insets(verticalCardPos, 4, 0, 0);
-                    }
-                } else {
-                    gbc.insets = new Insets(verticalCardPos, 8, 0, 0);
-                }
-
-                //gridBag.setConstraints(firstPLCardLabels.get(i), gbc);
-                gridBag.setConstraints(firstPLCardLabels.get(sortedValues.get(i)), gbc);
-            }
-
-            //secondPLCards
-            if (i < activeCardsDesc.secondPLCardsNum) {
-                int reducedTableCards;
-
-                if (i > 11) {
-                    gbc.gridy = 0;
-                    reducedTableCards = cardsOnTableLabels.size() + 12;
-                } else {
-                    gbc.gridy = 1;
-                    reducedTableCards = cardsOnTableLabels.size();
-                }
-
-                verticalCardPos = bottomCardPos;
-
-                if (i <= reducedTableCards) {
-                    if (!isSecond) {
-                        gbc.insets = new Insets(verticalCardPos, 0, 0, 0);
-                    } else {
-                        gbc.insets = new Insets(verticalCardPos, 4, 0, 0);
-                    }
-                } else {
-                    gbc.insets = new Insets(verticalCardPos, 8, 0, 0);
-                }
-
-                gridBag.setConstraints(secondPLCardLabels.get(i), gbc);
-            }
-            //second player second row
-
-            //cardsOnTable
-            if (i < cardsOnTableLabels.size()) {
-                verticalCardPos = topCardPos;
-                gbc.gridy = 2;
-                if (!isSecond) {
-                    gbc.insets = new Insets(verticalCardPos, 4, 0, 0);
-                    //gbc.insets = new Insets(verticalCardPos, 4, 0, -40);
-                    isSecond = true;
-                } else {
-                    gbc.insets = new Insets(verticalCardPos, 4, 0, 10);
-                    isSecond = false;
-                }
-                gridBag.setConstraints(cardsOnTableLabels.get(i), gbc);
-            }
-        }
-
-        //creating insets for all left buttons
-        gbc.insets = new Insets(0, 0, 0, -30);
-
-        //adding submit button
-        gbc.gridy = 5;
-
-        gridBag.setConstraints(submitButton, gbc);
-
-        //adding wait animation
-        gbc.insets = new Insets(0, 40, 0, -40);
-        gridBag.setConstraints(waitingLabel, gbc);
-
-        //adding status label
-        gbc.insets = new Insets(0, 0, 0, -STATUS_LABEL_LENGTH);
-        gbc.gridy = 6;
-        gridBag.setConstraints(statusLabel, gbc);
-
-        //adding emptyPlace card or cards
-        gbc.insets = new Insets(0, 0, 0, -20);
-        if (activeCardsDesc.secondPLCardsNum < 13) {
-            gbc.gridy = 0;
-            gridBag.setConstraints(secondFirstRawEmptyCardPlace, gbc);
-        }
-
-        if (firstPLCardLabels.size() < 13) {
-            gbc.gridy = 4;
-            gridBag.setConstraints(firstFirstRawEmptyCardPlace, gbc);
-        }
-
-        if (cardsOnTableLabels.size() == 0) {
-            gbc.gridy = 2;
-            gridBag.setConstraints(tableEmptyCardPlace, gbc);
-        }
-
-        if (activeCardsDesc.secondPLCardsNum == 0) {
-            gbc.gridy = 1;
-            gridBag.setConstraints(secondSecondRawEmptyCardPlace, gbc);
-        }
-
-        if (firstPLCardLabels.size() == 0) {
-            gbc.gridy = 3;
-            gridBag.setConstraints(firstSecondRawEmptyCardPlace, gbc);
-        }
-
-        mainFrame.setLayout(gridBag);
     }
 
     private void removeFrameElements() {
@@ -434,53 +201,56 @@ public class TableVisualization implements Runnable {
             }
         }
 
-        //removing firstPLCards
+        /*//removing firstPLCards
         for (JLabel firstPLCardButton : firstPLCardLabels) {
-            mainFrame.remove(firstPLCardButton);
+            mainPanel.remove(firstPLCardButton);
         }
 
         //removing cardsOnTable
         for (JLabel cardsOnTableButton : cardsOnTableLabels) {
-            mainFrame.remove(cardsOnTableButton);
+            mainPanel.remove(cardsOnTableButton);
         }
 
         //removing secondPLCards
         for (JLabel secondPlayerCard : secondPLCardLabels) {
-            mainFrame.remove(secondPlayerCard);
+            mainPanel.remove(secondPlayerCard);
         }
 
         //removing submit button
-        mainFrame.remove(submitButton);
+        mainPanel.remove(submitButton);
 
         //removing emptySpace cards
         if (firstPLCardLabels.size() < 13) {
-            mainFrame.remove(firstFirstRawEmptyCardPlace);
+            mainPanel.remove(firstFirstRawEmptyCardPlace);
         }
 
         if (secondPLCardLabels.size() < 13) {
-            mainFrame.remove(secondFirstRawEmptyCardPlace);
+            mainPanel.remove(secondFirstRawEmptyCardPlace);
         }
 
         if (cardsOnTableLabels.size() == 0) {
-            mainFrame.remove(tableEmptyCardPlace);
+            mainPanel.remove(tableEmptyCardPlace);
         }
         if (firstPLCardLabels.size() == 0) {
-            mainFrame.remove(firstSecondRawEmptyCardPlace);
+            mainPanel.remove(firstSecondRawEmptyCardPlace);
         }
 
         if (secondPLCardLabels.size() == 0) {
-            mainFrame.remove(secondSecondRawEmptyCardPlace);
+            mainPanel.remove(secondSecondRawEmptyCardPlace);
         }
 
         //removing status label
-        mainFrame.remove(statusLabel);
+        mainPanel.remove(statusLabel);
         //mainFrame.removeAll();
 
         //removing waiting label
-        mainFrame.remove(waitingLabel);
+        mainPanel.remove(waitingLabel);*/
+
+        mainFrame.remove(mainPanel);
+        mainFrame.validate();
     }
 
-    private Map<Integer, Integer> asortedFirstPLLabels() {
+    /*private Map<Integer, Integer> asortedFirstPLLabels() {
         Map<Integer, Integer> asortedFirstPlValues = new HashMap<Integer, Integer>();
         Map<Integer, Integer> sortedFirstPlValues = sortFirstPLLabels();
 
@@ -488,26 +258,26 @@ public class TableVisualization implements Runnable {
             asortedFirstPlValues.put(sortedFirstPlValues.get(i), i);
         }
         return asortedFirstPlValues;
-    }
+    }*/
 
-    private Map<Integer, Integer> sortFirstPLLabels() {
+    private Map<Integer, Integer> sortFirstPLLabels(List<Integer> firstPLCards) {
         /**
          * key - sorted nomber, value - nomber in lables
          */
         Map<Integer, Integer> sortedValues = new HashMap<Integer, Integer>();
 
-        int firstPlCardsNum = activeCardsDesc.firstPLCards.size() / 2;
+        int firstPlCardsNum = firstPLCards.size() / 2;
 
         for (int i = 0; i < firstPlCardsNum; i++) {
             sortedValues.put(i, i);
         }
 
         List<CardDesc> tempCardsDesc = new ArrayList<CardDesc>();
-        for (int i = 0; i < activeCardsDesc.firstPLCards.size(); i++) {
+        for (int i = 0; i < firstPLCards.size(); i++) {
             CardDesc tempCardDesc = new CardDesc();
-            tempCardDesc.cardSuit = activeCardsDesc.firstPLCards.get(i);
+            tempCardDesc.cardSuit = firstPLCards.get(i);
             i++;
-            tempCardDesc.cardValue = activeCardsDesc.firstPLCards.get(i);
+            tempCardDesc.cardValue = firstPLCards.get(i);
             tempCardsDesc.add(tempCardDesc);
         }
 
@@ -531,7 +301,7 @@ public class TableVisualization implements Runnable {
         return sortedValues;
     }
 
-    private void addCardsToTable() {
+    /*private void addCardsToTable() {
 
         //adding firstPLCards
         Map<Integer, Integer> sortedValues = sortFirstPLLabels();
@@ -577,7 +347,7 @@ public class TableVisualization implements Runnable {
 
         //adding waiting label
         mainFrame.add(waitingLabel);
-    }
+    }*/
 
     //TODO make something with this terrible initConnection in many classes
     /**
@@ -599,6 +369,7 @@ public class TableVisualization implements Runnable {
     }
 
     private void cardButtonPressed(int cardNum) {
+        logger.debug("card button pressed...");
         if (!isTurnWaiting) {
             if (activeCardsDesc.selectedCard == cardNum) {
                 logger.debug("Setting visible waiting animation");
@@ -623,10 +394,10 @@ public class TableVisualization implements Runnable {
         }
     }
 
-    private void createItemsListeners(List<JLabel> firstPLCardButtons, List<JLabel> cardsOnTableButtons, ActiveCardsDesc activeCardsDesc) {
+    private void createItemsListeners(List<JLabel> firstPLCardButtons/*, List<JLabel> cardsOnTableButtons, ActiveCardsDesc activeCardsDesc*/) {
         this.firstPLCardLabels = firstPLCardButtons;
-        this.activeCardsDesc = activeCardsDesc;
-        this.cardsOnTableLabels = cardsOnTableButtons;
+        /*this.activeCardsDesc = activeCardsDesc;
+        this.cardsOnTableLabels = cardsOnTableButtons;*/
 
         for (int i = 0; i < this.firstPLCardLabels.size(); i++) {
             final int cardNum = i;
@@ -670,7 +441,7 @@ public class TableVisualization implements Runnable {
                     }
                 }
                 if (!stopCurrGame) {
-                    activeCardsDesc.selectedCard = sortFirstPLLabels().get(activeCardsDesc.selectedCard);
+                    activeCardsDesc.selectedCard = sortFirstPLLabels(activeCardsDesc.firstPLCards).get(activeCardsDesc.selectedCard);
                     logger.debug("redrawing table...");
                     statusLabel.setText("STATUS: waiting for second player move...");
                     drawTable(activeCardsDesc, mainFrame, gameType);
@@ -689,7 +460,8 @@ public class TableVisualization implements Runnable {
                         retryConnection = noConnectionPrevention(hre);
                     }
                 }
-                activeCardsDesc.selectedCard = sortFirstPLLabels().get(activeCardsDesc.selectedCard);
+                logger.debug("activeCardsDesc.selectedCard" + activeCardsDesc.selectedCard);
+                activeCardsDesc.selectedCard = sortFirstPLLabels(activeCardsDesc.firstPLCards).get(activeCardsDesc.selectedCard);
                 logger.debug("redrawing table...");
                 statusLabel.setText("STATUS: waiting for second player move...");
                 drawTable(activeCardsDesc, mainFrame, gameType);
@@ -764,7 +536,7 @@ public class TableVisualization implements Runnable {
             }
         }
         if (!isStopCurrGame) {
-            logger.debug("tempActiveCardsDesc.secondPLCardsNum" + tempActiveCardsDesc.secondPLCardsNum);
+            logger.debug("tempActiveCardsDesc.secondPLCardsNum " + tempActiveCardsDesc.secondPLCardsNum);
             if (tempActiveCardsDesc.timeOutReached) {
                 logger.debug("timeout reached. starting new game...");
                 removeFrameElements();
@@ -787,7 +559,7 @@ public class TableVisualization implements Runnable {
                         logger.debug("tempActiveCardsDesc.secondPLCardsNum " + activeCardsDesc.secondPLCardsNum);
                         tempActiveCardsDesc.selectedCard = 0;
                         activeCardsDesc = tempActiveCardsDesc;
-                        activeCardsDesc.selectedCard = sortFirstPLLabels().get(activeCardsDesc.selectedCard);
+                        activeCardsDesc.selectedCard = sortFirstPLLabels(activeCardsDesc.firstPLCards).get(activeCardsDesc.selectedCard);
                         logger.debug("redrawing table...");
                         statusLabel.setText("STATUS: leading, put next card or press End of turn button");
                         drawTable(activeCardsDesc, mainFrame, gameType);
@@ -796,7 +568,7 @@ public class TableVisualization implements Runnable {
                         if (tempActiveCardsDesc.cardsOnTable.size() != activeCardsDesc.cardsOnTable.size()) {
                             logger.debug("tempActiveCardsDesc.secondPLCardsNum " + activeCardsDesc.secondPLCardsNum);
                             activeCardsDesc = tempActiveCardsDesc;
-                            activeCardsDesc.selectedCard = sortFirstPLLabels().get(activeCardsDesc.selectedCard);
+                            activeCardsDesc.selectedCard = sortFirstPLLabels(activeCardsDesc.firstPLCards).get(activeCardsDesc.selectedCard);
                             logger.debug("redrawing table...");
                             statusLabel.setText("STATUS: waiting for second player move...");
                             drawTable(activeCardsDesc, mainFrame, gameType);
@@ -805,7 +577,7 @@ public class TableVisualization implements Runnable {
                             new Thread(this, "Last move waiting thread").start();
                         } else {
                             activeCardsDesc = tempActiveCardsDesc;
-                            activeCardsDesc.selectedCard = sortFirstPLLabels().get(activeCardsDesc.selectedCard);
+                            activeCardsDesc.selectedCard = sortFirstPLLabels(activeCardsDesc.firstPLCards).get(activeCardsDesc.selectedCard);
                             logger.debug("redrawing table...");
                             drawTable(activeCardsDesc, mainFrame, gameType);
                         }
@@ -868,7 +640,7 @@ public class TableVisualization implements Runnable {
                         }
                         activeCardsDesc.selectedCard = 0;
                     } else {
-                        activeCardsDesc.selectedCard = sortFirstPLLabels().get(activeCardsDesc.selectedCard);
+                        activeCardsDesc.selectedCard = sortFirstPLLabels(activeCardsDesc.firstPLCards).get(activeCardsDesc.selectedCard);
                         //checking if gameType changed
                         if (activeCardsDesc.cardsOnTable.size() == 0 & gameType == BEATING_OFF) {
                             logger.debug("Changing game type...");
