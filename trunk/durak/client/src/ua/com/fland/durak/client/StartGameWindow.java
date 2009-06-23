@@ -53,6 +53,8 @@ public class StartGameWindow extends JDialog implements Runnable {
 
     private String serverID;
 
+    private final static String url = "http://81.22.135.175:8080/gameServer";
+
     private void fillServerList() {
         //getting lists
         serversNames = new HashMap<String, String>();
@@ -80,7 +82,7 @@ public class StartGameWindow extends JDialog implements Runnable {
             }
             avaibleServers.setListData(servers);
         } catch (HessianRuntimeException e) {
-            logger.error("Cann't connect to 81.22.135.175:8080/gameServer " + e);
+            logger.error("Cann't connect to " + url + " " + e);
             switch (JOptionPane.showConfirmDialog(this, "Cann't connect to game server. Check your firewall settings or in-game proxy settings. Exit game?", "Error", JOptionPane.YES_NO_OPTION)) {
                 case JOptionPane.YES_OPTION:
                     logger.debug("Closing  StartGame frame");
@@ -93,7 +95,8 @@ public class StartGameWindow extends JDialog implements Runnable {
     }
 
     private void initConnection() throws MalformedURLException {
-        String url = "http://81.22.135.175:8080/gameServer";
+        //String url = "http://81.22.135.175:8080/gameServer";
+        //String url = "http://127.0.0.1:8080/gameServer";
 
         factory = new HessianProxyFactory();
         gameServer = (GameServer) factory.create(GameServer.class, url);

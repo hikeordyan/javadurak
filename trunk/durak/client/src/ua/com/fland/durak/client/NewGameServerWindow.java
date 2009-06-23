@@ -43,6 +43,8 @@ public class NewGameServerWindow extends JDialog implements Runnable {
 
     private FramesExchanger exchanger;
 
+    private final static String url = "http://81.22.135.175:8080/gameServer";
+
     private void fillTimeoutValues() {
         timeOutValue.addItem("30 sec");
         timeOutValue.addItem("1 min");
@@ -66,7 +68,8 @@ public class NewGameServerWindow extends JDialog implements Runnable {
 
     //TODO make something with this terrible initConnection in many classes
     private void initConnection() {
-        String url = "http://81.22.135.175:8080/gameServer";
+        //url = "http://81.22.135.175:8080/gameServer";
+        //String url = "http://127.0.0.1:8080/gameServer";
 
         factory = new HessianProxyFactory();
         try {
@@ -95,7 +98,7 @@ public class NewGameServerWindow extends JDialog implements Runnable {
     }
 
     private void connectionExceptionCaught(HessianRuntimeException hre) {
-        logger.error("Cann't connect to 81.22.135.175:8080/gameServer " + hre);
+        logger.error("Cann't connect to " + url + " " + hre);
         JOptionPane.showMessageDialog(this, "Cann't connect to game server. Check your firewall settings or in-game proxy settings.", "Error", JOptionPane.ERROR_MESSAGE);
     }
 

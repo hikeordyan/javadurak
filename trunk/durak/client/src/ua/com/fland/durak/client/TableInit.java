@@ -4,13 +4,11 @@ import org.apache.log4j.Logger;
 
 import javax.swing.*;
 import javax.swing.border.Border;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
 import java.awt.*;
-import java.awt.image.FilteredImageSource;
-import java.awt.image.ImageFilter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by IntelliJ IDEA.<br>
@@ -57,7 +55,7 @@ public class TableInit {
         //placing secondPL cards
         List<JLabel> secondPLCardLabels = placeSecondPLCards(activeCardsDesc.secondPLCardsNum);
         //placing cardsOnTable
-        List<JLabel> cardsOnTableLabels = placeCardsOnTable(activeCardsDesc.cardsOnTable);
+        List<JLabel> cardsOnTableLabels = placeCardsOnTable(activeCardsDesc.cardsOnTable, activeCardsDesc.usedCardNum);
         //placing firstPl cards
         List<JLabel> firstPLCardLabels = placeFirstPLCards(activeCardsDesc.firstPLCards, activeCardsDesc.selectedCard);
 
@@ -67,10 +65,14 @@ public class TableInit {
         buttonPanel.add(submitButton);
         buttonPanel.add(waitingLabel);
 
+        JPanel statusPanel = BoxLayoutUtils.createHorizontalPanel();
+        statusPanel.setOpaque(false);
+        statusPanel.add(statusLabel);
+        statusPanel.add(Box.createHorizontalGlue());
         this.mainPanel.add(buttonPanel);
-        //statusLabel.setAlignmentX(JLabel.LEFT_ALIGNMENT);
-        //TODO make left alignment for status label
-        this.mainPanel.add(statusLabel);
+        this.mainPanel.add(statusPanel);
+
+        logger.debug("usedCardNum: " + activeCardsDesc.usedCardNum);
 
         return new TableElementsDesc(firstPLCardLabels, cardsOnTableLabels, secondPLCardLabels, submitButton, this.mainPanel);
     }
@@ -127,17 +129,25 @@ public class TableInit {
         return asortedFirstPlValues;
     }
 
-    private List<JLabel> placeCardsOnTable(List<Integer> cardsOnTable) {
-        JPanel cardsOnTablePanel = BoxLayoutUtils.createHorizontalPanel();
-        cardsOnTablePanel.setOpaque(false);
-        if (cardsOnTable.size() < 1) {
-            logger.debug("creating free space for cardsOnTable");
-            cardsOnTablePanel.add(Box.createRigidArea(new Dimension(0, 105)));
-        }
-        List<JLabel> cardsOnTableLabels = new ArrayList<JLabel>();
+    private List<JLabel> placeCardsOnTable(List<Integer> cardsOnTable, byte usedCardNum) {
+        //creating cardBatchLabel
         ImageIcon cardIcon = new ImageIcon();
         String cardIconName;
+        cardIconName = cardIconsPath + "card" + 3 + ".gif";
+        if (getClass().getResource(cardIconName) != null) {
+            cardIcon = new ImageIcon(getClass().getResource(cardIconName));
+        } else {
+            logger.error("Cann't find file: " + cardIconName);
+        }
+        String leftCardsNum = Integer.toString(36 - usedCardNum);
+        JLabel cardBatchLabel = new JLabel(leftCardsNum);
+        cardBatchLabel.setIcon(cardIcon);
+        cardBatchLabel.setFont(new Font(mainPanel.getFont().getFontName(), Font.PLAIN, mainPanel.getFont().getSize() + mainPanel.getFont().getSize()));
+        cardBatchLabel.setAlignmentY(JLabel.BOTTOM_ALIGNMENT);
+
         Border emptyBorder = BorderFactory.createEmptyBorder();
+        //creating labels
+        List<JLabel> cardsOnTableLabels = new ArrayList<JLabel>();
         for (int i = 0; i < cardsOnTable.size(); i++) {
             cardIconName = cardIconsPath + "card" + cardsOnTable.get(i) + cardsOnTable.get(++i) + ".gif";
             if (getClass().getResource(cardIconName) != null) {
@@ -149,9 +159,35 @@ public class TableInit {
             tempCard.setBorder(emptyBorder);
             tempCard.setAlignmentY(JLabel.BOTTOM_ALIGNMENT);
             cardsOnTableLabels.add(tempCard);
-            cardsOnTablePanel.add(tempCard);
-            cardsOnTablePanel.add(Box.createRigidArea(new Dimension(10, 0)));
         }
+
+        JPanel cardsOnTablePanel = BoxLayoutUtils.createHorizontalPanel();
+        cardsOnTablePanel.setOpaque(false);
+        cardsOnTablePanel.add(Box.createHorizontalGlue());
+        if (cardsOnTable.size() < 1) {
+            logger.debug("creating free space for cardsOnTable");
+            cardBatchLabel.setAlignmentY(JLabel.TOP_ALIGNMENT);
+        } else {
+            for (int i = 0; i < cardsOnTableLabels.size(); i++) {
+                if ((i + 1) < cardsOnTableLabels.size()) {
+                    int j = i + 1;
+                    cardsOnTablePanel.add(Box.createRigidArea(new Dimension(40, 0)));
+                    cardsOnTablePanel.add(cardsOnTableLabels.get(j));
+                    cardsOnTablePanel.add(Box.createRigidArea(new Dimension(-100, 0)));
+                    cardsOnTablePanel.add(cardsOnTableLabels.get(i));
+                    cardsOnTablePanel.add(Box.createRigidArea(new Dimension(30, 0)));
+                    ++i;
+                } else {
+                    cardsOnTablePanel.add(Box.createRigidArea(new Dimension(10, 0)));
+                    cardsOnTablePanel.add(cardsOnTableLabels.get(i));
+                }
+            }
+        }
+
+        //adding cardbatch info
+        cardsOnTablePanel.add(Box.createHorizontalGlue());
+        cardsOnTablePanel.add(cardBatchLabel);
+
         mainPanel.add(cardsOnTablePanel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
 

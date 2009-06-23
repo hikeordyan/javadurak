@@ -1,19 +1,14 @@
 package ua.com.fland.durak.client;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.*;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 
 /**
  * Created by IntelliJ IDEA.<br>
@@ -63,7 +58,7 @@ public class AboutDialog extends JDialog {
     }
 
     private void initElements() {
-        textInfo = new JLabel("<html>The Durak Game client<br>ver 0.9.1 rev 43<br>http://www.gnu.org/licenses/gpl.html - " +
+        textInfo = new JLabel("<html>The Durak Game client<br>ver 2.0.1b rev 178<br>http://www.gnu.org/licenses/gpl.html - " +
                 "GNU General Public License</html>");
         ImageIcon gplIcon = new ImageIcon();
         String waitAnimationName = "gplv3.png";
@@ -77,13 +72,13 @@ public class AboutDialog extends JDialog {
 
         okButton = new JButton("OK");
         okButton.setAlignmentX(CENTER_ALIGNMENT);
-        
+
         String license = "";
-        InputStream inputStream =getClass().getResourceAsStream("COPYING");
+        InputStream inputStream = getClass().getResourceAsStream("COPYING");
         try {
             license = IOUtils.toString(inputStream);
         } catch (IOException e) {
-            logger.error ("cann't open file " + e);
+            logger.error("cann't open file " + e);
             license = "Cann't open open file COPYING with license";
         }
 

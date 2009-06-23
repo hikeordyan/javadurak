@@ -13,28 +13,28 @@ import java.util.List;
  * User: maxim<br>
  * Date: May 7, 2009<br>
  * Time: 3:41:13 PM<br>
- *
- *
-    DukarGameClient - client of on-line durak game<br>
-    Copyright (C) 2009  Maxim Bondarenko<br>
-
-    This program is free software: you can redistribute it and/or modify<br>
-    it under the terms of the GNU General Public License as published by<br>
-    the Free Software Foundation, either version 3 of the License, or<br>
-    (at your option) any later version.<br>
-    <br>
-    This program is distributed in the hope that it will be useful,<br>
-    but WITHOUT ANY WARRANTY; without even the implied warranty of<br>
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the<br>
-    GNU General Public License for more details.<br>
-    <br>
-    You should have received a copy of the GNU General Public License<br>
-    along with this program.  If not, see <a href="http://www.gnu.org/licenses/">GNU Licenses</a><br>
+ * <p/>
+ * <p/>
+ * DukarGameClient - client of on-line durak game<br>
+ * Copyright (C) 2009  Maxim Bondarenko<br>
+ * <p/>
+ * This program is free software: you can redistribute it and/or modify<br>
+ * it under the terms of the GNU General Public License as published by<br>
+ * the Free Software Foundation, either version 3 of the License, or<br>
+ * (at your option) any later version.<br>
+ * <br>
+ * This program is distributed in the hope that it will be useful,<br>
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of<br>
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the<br>
+ * GNU General Public License for more details.<br>
+ * <br>
+ * You should have received a copy of the GNU General Public License<br>
+ * along with this program.  If not, see <a href="http://www.gnu.org/licenses/">GNU Licenses</a><br>
  */
 public class TableActionProcess {
     private static final Logger logger = Logger.getLogger(TableActionProcess.class);
 
-    private JFrame mainFrame;
+    //private JFrame mainFrame;
     /*private List<JToggleButton> firstPLCardButtons;
     private List<JToggleButton> cardsOnTableButtons;*/
     private List<CardDesc> cardsOnTableValues;
@@ -42,11 +42,9 @@ public class TableActionProcess {
 
     private ActiveCardsDesc activeCardsDesc;
 
-    private int wasSelected;
+    //private int wasSelected;
     private int selectedCard;
     private int tramp;
-
-    private byte gameType;
 
     private String serverID;
     private byte plName;
@@ -62,10 +60,8 @@ public class TableActionProcess {
     /*private final static byte GETTING_LAST_MOVE = 0;
     private final static byte TABLE_CHANGED = 1;*/
 
-    /**
-     * Hessian factory for Hessian connection
-     */
-    private HessianProxyFactory factory;
+    private final static String url = "http://81.22.135.175:8080/gameServer";
+
     /**
      * Interface for Hessian connection
      */
@@ -121,7 +117,6 @@ public class TableActionProcess {
 
     public ActiveCardsDesc cardButtonPressed(int cardNum, ActiveCardsDesc activeCardsDesc, byte gameType) {
         this.activeCardsDesc = activeCardsDesc;
-        this.gameType = gameType;
         formCardValues(this.activeCardsDesc);
         tableUpdated = false;
 
@@ -216,13 +211,13 @@ public class TableActionProcess {
      * Initializing connection, which is using Hessian
      */
     private void initConnection() {
-        String url = "http://81.22.135.175:8080/gameServer";
+        //String url = "http://81.22.135.175:8080/gameServer";
 
-        factory = new HessianProxyFactory();
+        HessianProxyFactory factory = new HessianProxyFactory();
         try {
             gameServer = (GameServer) factory.create(GameServer.class, url);
         } catch (MalformedURLException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            e.printStackTrace();
         }
     }
 }
