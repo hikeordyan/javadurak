@@ -5,12 +5,8 @@ import com.caucho.hessian.client.HessianRuntimeException;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,19 +44,9 @@ public class TableVisualization implements Runnable {
     private JFrame mainFrame;
     private JPanel mainPanel;
 
-    private GridBagConstraints gbc;
-    private GridBagLayout gridBag;
-
     private List<JLabel> firstPLCardLabels;
-    private List<JLabel> cardsOnTableLabels;
-    private List<JLabel> secondPLCardLabels;
-    /*private List<CardDesc> cardsOnTableValues;
-    private List<CardDesc> firstPLCardsValues;*/
-    private JButton firstFirstRawEmptyCardPlace = new JButton();
-    private JButton secondFirstRawEmptyCardPlace = new JButton();
-    private JButton firstSecondRawEmptyCardPlace = new JButton();
-    private JButton secondSecondRawEmptyCardPlace = new JButton();
-    private JButton tableEmptyCardPlace = new JButton();
+    //private List<JLabel> cardsOnTableLabels;
+    //private List<JLabel> secondPLCardLabels;
 
     private JLabel statusLabel = new JLabel("STATUS: no status yet");
 
@@ -79,6 +65,8 @@ public class TableVisualization implements Runnable {
     private String serverID;
 
     private boolean isTurnWaiting;
+
+    private JPanel waitingPanel;
 
     /**
      * Hessian factory for Hessian connection
@@ -121,18 +109,18 @@ public class TableVisualization implements Runnable {
 
     private int cardNum;
 
+    private final static String url = "http://81.22.135.175:8080/gameServer";
+
     public TableVisualization(byte plName, String serverID, FramesExchanger exchanger) {
         this.plName = plName;
         this.serverID = serverID;
         this.exchanger = exchanger;
 
-        gbc = new GridBagConstraints();
-        gridBag = new GridBagLayout();
         submitButton = new JButton("End of turn");
         activeCardsDesc = new ActiveCardsDesc();
         firstPLCardLabels = new ArrayList<JLabel>();
-        secondPLCardLabels = new ArrayList<JLabel>();
-        cardsOnTableLabels = new ArrayList<JLabel>();
+        /*secondPLCardLabels = new ArrayList<JLabel>();
+        cardsOnTableLabels = new ArrayList<JLabel>();*/
         tableInit = new TableInit();
         mainPanel = new JPanel();
 
@@ -144,6 +132,8 @@ public class TableVisualization implements Runnable {
             logger.error("Cann't find file: " + waitEmptyName);
         }
         waitingLabel = new JLabel(waitEmptyIcon);
+
+        waitingPanel = BoxLayoutUtils.createHorizontalPanel();
 
         statusLabel.setPreferredSize(new Dimension(STATUS_LABEL_LENGTH, 20));
         switch (gameType) {
@@ -161,12 +151,21 @@ public class TableVisualization implements Runnable {
         initConnection();
     }
 
+    private void mainFrameValidate() {
+        mainFrame.validate();
+        mainFrame.repaint();
+    }
+
     public void drawTable(ActiveCardsDesc activeCardsDesc, JFrame mainFrame, byte gameType) {
         this.activeCardsDesc = activeCardsDesc;
         this.mainFrame = mainFrame;
         this.gameType = gameType;
-        gbc = new GridBagConstraints();
-        gridBag = new GridBagLayout();
+
+        this.mainFrame.addWindowListener(new WindowAdapter() {
+            public void windowDeiconified(WindowEvent we) {
+                mainFrameValidate();
+            }
+        });
 
         //setting up cards
         removeFrameElements();
@@ -176,12 +175,13 @@ public class TableVisualization implements Runnable {
         TableElementsDesc tempTableElementsDesc = tableInit.placeElements(submitButton, waitingLabel, activeCardsDesc, mainPanel, statusLabel);
         firstPLCardLabels = new ArrayList<JLabel>();
         firstPLCardLabels = tempTableElementsDesc.firstPLCardLabels;
-        secondPLCardLabels = new ArrayList<JLabel>();
+        /*secondPLCardLabels = new ArrayList<JLabel>();
         secondPLCardLabels = tempTableElementsDesc.secondPLCardLabels;
         cardsOnTableLabels = new ArrayList<JLabel>();
-        cardsOnTableLabels = tempTableElementsDesc.cardsOnTableLabels;
+        cardsOnTableLabels = tempTableElementsDesc.cardsOnTableLabels;*/
         mainPanel = tempTableElementsDesc.mainPanel;
         this.mainFrame.add(mainPanel);
+
         createItemsListeners(firstPLCardLabels);
 
         this.mainFrame.validate();
@@ -301,66 +301,19 @@ public class TableVisualization implements Runnable {
         return sortedValues;
     }
 
-    /*private void addCardsToTable() {
-
-        //adding firstPLCards
-        Map<Integer, Integer> sortedValues = sortFirstPLLabels();
-        for (int i = 0; i < firstPLCardLabels.size(); i++) {
-            mainFrame.add(firstPLCardLabels.get(sortedValues.get(i)));
-        }
-
-        //adding cardsOnTable
-        for (JLabel cardsOnTableButton : cardsOnTableLabels) {
-            mainFrame.add(cardsOnTableButton);
-        }
-
-        //adding secondPLCards
-        for (JLabel secondPlayerCard : secondPLCardLabels) {
-            mainFrame.add(secondPlayerCard);
-        }
-
-        //adding submit button
-        mainFrame.add(submitButton);
-
-        //adding emptySpace cards
-        if (firstPLCardLabels.size() < 13) {
-            mainFrame.add(firstFirstRawEmptyCardPlace);
-        }
-
-        if (secondPLCardLabels.size() < 13) {
-            mainFrame.add(secondFirstRawEmptyCardPlace);
-        }
-
-        if (cardsOnTableLabels.size() == 0) {
-            mainFrame.add(tableEmptyCardPlace);
-        }
-        if (firstPLCardLabels.size() == 0) {
-            mainFrame.add(firstSecondRawEmptyCardPlace);
-        }
-
-        if (secondPLCardLabels.size() == 0) {
-            mainFrame.add(secondSecondRawEmptyCardPlace);
-        }
-
-        //adding status label
-        mainFrame.add(statusLabel);
-
-        //adding waiting label
-        mainFrame.add(waitingLabel);
-    }*/
-
     //TODO make something with this terrible initConnection in many classes
     /**
      * Initializing connection, which is using Hessian
      */
     private void initConnection() {
-        String url = "http://81.22.135.175:8080/gameServer";
+        //String url = "http://81.22.135.175:8080/gameServer";
+        //String url = "http://127.0.0.1:8080/gameServer";
 
         factory = new HessianProxyFactory();
         try {
             gameServer = (GameServer) factory.create(GameServer.class, url);
         } catch (MalformedURLException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            e.printStackTrace();
         }
     }
 
@@ -475,7 +428,7 @@ public class TableVisualization implements Runnable {
     }
 
     private boolean noConnectionPrevention(HessianRuntimeException hre) {
-        logger.error("Cann't connect to 81.22.135.175:8080/gameServer " + hre);
+        logger.error("Cann't connect to " +url + " "+ hre);
         Object[] options = {"Yes",
                 "No, exit the game",
                 "No, start new game"};

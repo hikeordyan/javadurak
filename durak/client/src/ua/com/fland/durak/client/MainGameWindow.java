@@ -3,8 +3,6 @@ package ua.com.fland.durak.client;
 import com.caucho.hessian.client.HessianProxyFactory;
 import com.caucho.hessian.client.HessianRuntimeException;
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.xml.XmlBeanFactory;
-import org.springframework.core.io.ClassPathResource;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,7 +11,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.net.MalformedURLException;
-import java.util.Date;
 
 /**
  * Created by IntelliJ IDEA.<br>
@@ -44,18 +41,14 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
 
     private JFrame mainFrame;
     private StartGameWindow startGameFrame;
-    private int plID;
-    private long pairNum;
+    /*private int plID;
+    private long pairNum;*/
 
     private FramesExchanger exchanger;
 
     private String serverID;
     private byte plName;
 
-    /**
-     * Hessian factory for Hessian connection
-     */
-    private HessianProxyFactory factory;
     /**
      * Interface for Hessian connection
      */
@@ -77,6 +70,8 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
     private final static int JOIN_GAME_ACCEPTED = 5;
 
     private final static int END_GAME_REACHED = 6;
+
+    private final static String url = "http://81.22.135.175:8080/gameServer";
 
     /**
      * Initializing main parameters of MainGameWindow
@@ -168,26 +163,28 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
         mainFrame.setMenuBar(mainMenuBar);
     }
 
-    private void someWait() {
+    /*private void someWait() {
         long startTime = new Date().getTime();
         long currTime = new Date().getTime();
         while (currTime < startTime + 5000) {
             currTime = new Date().getTime();
         }
-    }
+    }*/
 
     //TODO make something with this terrible initConnection in many classes
+
     /**
      * Initializing connection, which is using Hessian
      */
     private void initConnection() {
-        String url = "http://81.22.135.175:8080/gameServer";
+        //String url = "http://81.22.135.175:8080/gameServer";
+        //String url = "http://127.0.0.1:8080/gameServer";
 
-        factory = new HessianProxyFactory();
+        HessianProxyFactory factory = new HessianProxyFactory();
         try {
             gameServer = (GameServer) factory.create(GameServer.class, url);
         } catch (MalformedURLException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            e.printStackTrace();
         }
     }
 
@@ -216,7 +213,7 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
     }
 
     private boolean noConnectionPrevention(HessianRuntimeException hre) {
-        logger.error("Cann't connect to 81.22.135.175:8080/gameServer " + hre);
+        logger.error("Cann't connect to " + url + " " + hre);
         Object[] options = {"Yes",
                 "No, exit the game"};
 
@@ -237,7 +234,7 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
 
     //TODO remake getting cards, put in personal method
     public void run() {
-        boolean retryConnection = true;
+        //boolean retryConnection = true;
         switch (exchanger.get()) {
             case EXIT_GAME:
                 logger.debug("Exiting program");
@@ -291,17 +288,16 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
         refreshTable();
     }
 
-    private void getPrimaryNetworkData() {
+    /*private void getPrimaryNetworkData() {
         //setting
         XmlBeanFactory factory = new XmlBeanFactory(new ClassPathResource("applicationContext.xml"));
         ConnectionServiceImpl connectionService = ConnectionServiceImpl.class.cast(factory.getBean("setHessianParams"));
         connectionService.showValues();
-    }
+    }*/
 
     private void refreshTable() {
         TableVisualization tableVisualization = new TableVisualization(plName, serverID, exchanger);
         activeCardsDesc.selectedCard = 0;
-        //tableVisualization.drawTable(activeCardsDesc, mainFrame, gameType);
         tableVisualization.drawTable(activeCardsDesc, mainFrame, gameType);
         new Thread(this, "Start TableVisualization change").start();
     }
