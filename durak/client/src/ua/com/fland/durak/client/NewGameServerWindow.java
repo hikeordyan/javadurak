@@ -1,7 +1,3 @@
-/*
- * Created by JFormDesigner on Fri Jan 02 15:48:20 EET 2009
- */
-
 package ua.com.fland.durak.client;
 
 import com.caucho.hessian.client.HessianProxyFactory;
@@ -21,6 +17,27 @@ import java.net.MalformedURLException;
 
 /**
  * @author Maxim Bondarenko
+ * Created by IntelliJ IDEA.<br>
+ * User: maxim<br>
+ * Date: May 7, 2009<br>
+ * Time: 3:41:13 PM<br>
+ * <p/>
+ * <p/>
+ * DukarGameClient - client of on-line durak game<br>
+ * Copyright (C) 2009  Maxim Bondarenko<br>
+ * <p/>
+ * This program is free software: you can redistribute it and/or modify<br>
+ * it under the terms of the GNU General Public License as published by<br>
+ * the Free Software Foundation, either version 3 of the License, or<br>
+ * (at your option) any later version.<br>
+ * <br>
+ * This program is distributed in the hope that it will be useful,<br>
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of<br>
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the<br>
+ * GNU General Public License for more details.<br>
+ * <br>
+ * You should have received a copy of the GNU General Public License<br>
+ * along with this program.  If not, see <a href="http://www.gnu.org/licenses/">GNU Licenses</a><br>
  */
 public class NewGameServerWindow extends JDialog implements Runnable {
     private static final Logger logger = Logger.getLogger(NewGameServerWindow.class);
@@ -197,6 +214,13 @@ public class NewGameServerWindow extends JDialog implements Runnable {
         //parentW
     }
 
+    private void helpBtnMouseClicked(MouseEvent e){
+        logger.debug("help button clicked " + e);
+        JOptionPane.showMessageDialog(this, "<html>Enter server name, not less then 1 symbol, but not longer then 12 symbols.<br>" +
+                "Choose timeout value. Click button OK and wait until another player connect to this server</html>",
+                "Help", JOptionPane.INFORMATION_MESSAGE);
+    }
+
     private void initComponents() {
         // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents
         // Generated using JFormDesigner Evaluation license - Maxim Bondarenko
@@ -289,6 +313,12 @@ public class NewGameServerWindow extends JDialog implements Runnable {
 
                     //---- helpButton ----
                     helpButton.setText("Help");
+                    helpButton.addMouseListener(new MouseAdapter(){
+                        @Override
+                        public void mouseClicked(MouseEvent e){
+                            helpBtnMouseClicked(e);
+                        }
+                    });
                     buttonBar.add(helpButton, new GridBagConstraints(3, 0, 1, 1, 0.0, 0.0,
                             GridBagConstraints.CENTER, GridBagConstraints.BOTH,
                             new Insets(0, 0, 0, 0), 0, 0));
