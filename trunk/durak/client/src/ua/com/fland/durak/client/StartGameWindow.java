@@ -111,7 +111,7 @@ public class StartGameWindow extends JDialog implements Runnable {
 
         try {
             initConnection();
-            fillServerList();
+            //fillServerList();
         } catch (MalformedURLException e) {
             logger.error("Cann't create factory" + e);
         }
@@ -210,6 +210,13 @@ public class StartGameWindow extends JDialog implements Runnable {
         }
     }
 
+    private void helpBtnMouseClicked(MouseEvent e){
+        logger.debug("help button clicked " + e);
+        JOptionPane.showMessageDialog(this, "<html>Press refresh button to get actual server names.<br>" +
+                "Select server to connect and press connect button.<br>" +
+                " Or press create button and create own game server.</html>", "Help", JOptionPane.INFORMATION_MESSAGE);
+    }
+
     private void initComponents() {
         // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents
         // Generated using JFormDesigner Evaluation license - Maxim Bondarenko
@@ -283,6 +290,13 @@ public class StartGameWindow extends JDialog implements Runnable {
                     @Override
                     public void mouseClicked(MouseEvent e) {
                         refreshListBtnMouseClicked(e);
+                    }
+                });
+
+                helpButton.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        helpBtnMouseClicked(e);
                     }
                 });
 
