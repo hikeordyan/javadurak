@@ -1,8 +1,8 @@
 package ua.com.fland.durak.client;
 
+import com.caucho.hessian.client.HessianConnectionException;
 import com.caucho.hessian.client.HessianProxyFactory;
 import com.caucho.hessian.client.HessianRuntimeException;
-import com.caucho.hessian.client.HessianConnectionException;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
@@ -142,7 +142,12 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
         MenuItem newGameMenu = new MenuItem("New game");
         newGameMenu.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ae) {
-                tableVisualization.startNewGame();
+                if (tableVisualization != null) {
+                    tableVisualization.startNewGame();
+                } else {
+                    logger.debug("starting new game...");
+                    reInitMainFrame();
+                }
             }
         });
         gameMenu.add(newGameMenu);
@@ -300,7 +305,7 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
                 retryConnection = false;
             } catch (HessianRuntimeException hre) {
                 retryConnection = noConnectionPrevention(hre);
-            } catch (HessianConnectionException hce){
+            } catch (HessianConnectionException hce) {
                 retryConnection = noConnectionPrevention(hce);
             }
         }
@@ -318,7 +323,8 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
 
     private void refreshTable() {
         logger.debug("Refreshing table...");
-        /*TableVisualization*/ tableVisualization = new TableVisualization(plName, serverID, exchanger);
+        /*TableVisualization*/
+        tableVisualization = new TableVisualization(plName, serverID, exchanger);
         activeCardsDesc.selectedCard = 0;
         tableVisualization.drawTable(activeCardsDesc, mainFrame, gameType);
         new Thread(this, "Start TableVisualization change").start();

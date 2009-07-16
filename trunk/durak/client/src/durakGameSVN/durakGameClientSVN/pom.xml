@@ -76,6 +76,7 @@
                     <include>waitEmpty.gif</include>
                     <include>gplv3.png</include>
                     <include>COPYING</include>
+                    <include>tux50.png</include>
                 </includes>
             </resource>
 
