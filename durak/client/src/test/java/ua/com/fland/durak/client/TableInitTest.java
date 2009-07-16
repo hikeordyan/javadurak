@@ -1,14 +1,12 @@
 package ua.com.fland.durak.client;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Random;
 
 /**
  * Created by IntelliJ IDEA.<br>
  * User: maxim<br>
- * Date: May 7, 2009<br>
- * Time: 3:41:13 PM<br>
+ * Date: Jul 12, 2009<br>
+ * Time: 9:27:15 PM<br>
  * <p/>
  * <p/>
  * DukarGameClient - client of on-line durak game<br>
@@ -28,20 +26,14 @@ import java.util.List;
  * along with this program.  If not, see <a href="http://www.gnu.org/licenses/">GNU Licenses</a><br>
  */
 
-public class ActiveCardsDesc implements Serializable {
-    public int secondPLCardsNum;
-    public List<Integer> cardsOnTable;
-    public List<Integer> firstPLCards;
-    public int selectedCard;
-    public boolean timeOutReached;
-    public boolean endOfGameReached;
-    public byte leftCardNum;
-
-    public ActiveCardsDesc() {
-        cardsOnTable = new ArrayList<Integer>();
-        firstPLCards = new ArrayList<Integer>();
-        timeOutReached = false;
-        endOfGameReached = false;
-        leftCardNum = 0;
+public class TableInitTest {
+    public void testCardsSorting(){
+        ActiveCardsDesc activeCardsDesc = new ActiveCardsDesc();
+        Random random = new Random();
+        for (int i = 0; i < 12; i++){
+            activeCardsDesc.firstPLCards.add(random.nextInt(3));
+            activeCardsDesc.firstPLCards.add(random.nextInt(14));
+        }
+        
     }
 }

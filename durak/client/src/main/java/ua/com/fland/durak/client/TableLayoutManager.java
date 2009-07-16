@@ -34,28 +34,49 @@ import java.util.Map;
  * along with this program.  If not, see <a href="http://www.gnu.org/licenses/">GNU Licenses</a><br>
  */
 
-public class TableInit {
-    private static final Logger logger = Logger.getLogger(TableInit.class);
+public class TableLayoutManager {
+    private static final Logger logger = Logger.getLogger(TableLayoutManager.class);
     private static final String cardIconsPath = "cardIcons/";
+
+    private final static int STATUS_LABEL_LENGTH = 500;
 
     private JPanel mainPanel;
 
-    public TableInit() {
+    public TableLayoutManager() {
         mainPanel = BoxLayoutUtils.createVerticalPanel();
         mainPanel.setBackground(new Color(0, 150, 0));
     }
 
     public TableElementsDesc placeElements(JButton submitButton, JLabel waitingLabel,
-                                           ActiveCardsDesc activeCardsDesc, JPanel mainPanel, JLabel statusLabel) {
+                                           ActiveCardsDesc activeCardsDesc, JPanel mainPanel, Map<String, String> statusesText) {
         this.mainPanel = mainPanel;
-        logger.debug("Starting elemetns placing...");
+        logger.debug("Starting elements placing...");
         this.mainPanel = BoxLayoutUtils.createVerticalPanel();
         this.mainPanel.setBackground(new Color(0, 150, 0));
 
         //placing secondPL cards
         List<JLabel> secondPLCardLabels = placeSecondPLCards(activeCardsDesc.secondPLCardsNum);
+
+        //placing message line with some additional status
+        JPanel additionalStatusPanel = BoxLayoutUtils.createHorizontalPanel();
+        additionalStatusPanel.setOpaque(false);
+        JLabel additionalStatusLabel = new JLabel(statusesText.get("additionalStatus"));
+
+        if (!statusesText.get("additionalStatus").equals("")) {
+            String tuxIcon = "tux50.png";
+            if (getClass().getResource(tuxIcon) != null) {
+                additionalStatusLabel.setIcon(new ImageIcon(getClass().getResource(tuxIcon)));
+            } else {
+                logger.error("Cann't find file: " + tuxIcon);
+            }
+        }
+        additionalStatusLabel.setForeground(Color.white);
+        additionalStatusLabel.setPreferredSize(new Dimension(STATUS_LABEL_LENGTH, 70));
+        additionalStatusPanel.add(additionalStatusLabel);
+        this.mainPanel.add(additionalStatusPanel);
+
         //placing cardsOnTable
-        List<JLabel> cardsOnTableLabels = placeCardsOnTable(activeCardsDesc.cardsOnTable, activeCardsDesc.usedCardNum);
+        List<JLabel> cardsOnTableLabels = placeCardsOnTable(activeCardsDesc.cardsOnTable, activeCardsDesc.leftCardNum);
         //placing firstPl cards
         List<JLabel> firstPLCardLabels = placeFirstPLCards(activeCardsDesc.firstPLCards, activeCardsDesc.selectedCard);
 
@@ -67,12 +88,16 @@ public class TableInit {
 
         JPanel statusPanel = BoxLayoutUtils.createHorizontalPanel();
         statusPanel.setOpaque(false);
+        statusPanel.add(Box.createHorizontalStrut(10));
+        JLabel statusLabel = new JLabel(statusesText.get("mainStatus"));
+        statusLabel.setPreferredSize(new Dimension(STATUS_LABEL_LENGTH, 20));
+        statusLabel.setForeground(Color.white);
         statusPanel.add(statusLabel);
         statusPanel.add(Box.createHorizontalGlue());
         this.mainPanel.add(buttonPanel);
         this.mainPanel.add(statusPanel);
 
-        logger.debug("usedCardNum: " + activeCardsDesc.usedCardNum);
+        logger.debug("leftCardNum: " + activeCardsDesc.leftCardNum);
 
         return new TableElementsDesc(firstPLCardLabels, cardsOnTableLabels, secondPLCardLabels, submitButton, this.mainPanel);
     }
@@ -99,7 +124,7 @@ public class TableInit {
         }
 
 
-        for (int i = 0; i < firstPlCardsNum - 2; i++) {
+        for (int i = 0; i < firstPlCardsNum - 1; i++) {
             for (int j = 0; j < firstPlCardsNum - 1; j++) {
                 if (tempCardsDesc.get(sortedValues.get(j + 1)).cardSuit > tempCardsDesc.get(sortedValues.get(j)).cardSuit) {
                     int tempValue = sortedValues.get(j);
@@ -116,6 +141,11 @@ public class TableInit {
             }
         }
 
+        /*logger.debug("after sorting:");
+        for (int i = 0; i < firstPlCardsNum; i++) {
+            logger.debug(tempCardsDesc.get(sortedValues.get(i)).cardSuit + " " + tempCardsDesc.get(sortedValues.get(i)).cardValue);
+        }*/
+
         return sortedValues;
     }
 
@@ -129,7 +159,7 @@ public class TableInit {
         return asortedFirstPlValues;
     }
 
-    private List<JLabel> placeCardsOnTable(List<Integer> cardsOnTable, byte usedCardNum) {
+    private List<JLabel> placeCardsOnTable(List<Integer> cardsOnTable, byte leftCardNum) {
         //creating cardBatchLabel
         ImageIcon cardIcon = new ImageIcon();
         String cardIconName;
@@ -139,11 +169,12 @@ public class TableInit {
         } else {
             logger.error("Cann't find file: " + cardIconName);
         }
-        String leftCardsNum = Integer.toString(36 - usedCardNum);
+        String leftCardsNum = Integer.toString(leftCardNum);
         JLabel cardBatchLabel = new JLabel(leftCardsNum);
         cardBatchLabel.setIcon(cardIcon);
         cardBatchLabel.setFont(new Font(mainPanel.getFont().getFontName(), Font.PLAIN, mainPanel.getFont().getSize() + mainPanel.getFont().getSize()));
         cardBatchLabel.setAlignmentY(JLabel.BOTTOM_ALIGNMENT);
+        cardBatchLabel.setForeground(Color.white);
 
         Border emptyBorder = BorderFactory.createEmptyBorder();
         //creating labels
@@ -187,6 +218,7 @@ public class TableInit {
         //adding cardbatch info
         cardsOnTablePanel.add(Box.createHorizontalGlue());
         cardsOnTablePanel.add(cardBatchLabel);
+        cardsOnTablePanel.add(Box.createHorizontalStrut(10));
 
         mainPanel.add(cardsOnTablePanel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));

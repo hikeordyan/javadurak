@@ -6,7 +6,6 @@ import com.caucho.hessian.client.HessianRuntimeException;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.*;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -49,12 +48,15 @@ public class TableVisualization implements Runnable {
     //private List<JLabel> cardsOnTableLabels;
     //private List<JLabel> secondPLCardLabels;
 
-    private JLabel statusLabel = new JLabel("STATUS: no status yet");
+    //private JLabel statusLabel = new JLabel("STATUS: no status yet");
+    private Map<String, String> statusesText;
 
     //private TableActionProcess tableActionProcess;
 
     private ActiveCardsDesc activeCardsDesc;
-    private TableInit tableInit;
+    private TableLayoutManager tableLayoutManager;
+
+    private StatusTextGenerator statusTextGenerator;
 
     private JButton submitButton;
 
@@ -120,8 +122,14 @@ public class TableVisualization implements Runnable {
         submitButton = new JButton("End of turn");
         activeCardsDesc = new ActiveCardsDesc();
         firstPLCardLabels = new ArrayList<JLabel>();
-        tableInit = new TableInit();
+        tableLayoutManager = new TableLayoutManager();
         mainPanel = new JPanel();
+
+        statusTextGenerator = new StatusTextGenerator();
+
+        statusesText = new HashMap<String, String>();
+        statusesText.put("mainStatus", "No status yet");
+        statusesText.put("additionalStatus", "");
 
         ImageIcon waitEmptyIcon = new ImageIcon();
         String waitEmptyName = "waitEmpty.gif";
@@ -134,13 +142,14 @@ public class TableVisualization implements Runnable {
 
         waitingPanel = BoxLayoutUtils.createHorizontalPanel();
 
-        statusLabel.setPreferredSize(new Dimension(STATUS_LABEL_LENGTH, 20));
         switch (gameType) {
             case LEADING:
-                statusLabel.setText("STATUS: leading, put next card or press End of turn button");
+                statusesText.put("additionalStatus", statusTextGenerator.getAdditionalText("LEADING"));
+                statusesText.put("mainStatus", "STATUS: leading, put next card or press End of turn button");
                 break;
             case BEATING_OFF:
-                statusLabel.setText("STATUS: beating off, put next card or press End of turn button");
+                statusesText.put("additionalStatus", statusTextGenerator.getAdditionalText("BEATING_OFF"));
+                statusesText.put("mainStatus", "STATUS: beating off, put next card or press End of turn button");
                 break;
             default:
                 logger.error("Unexpected gameType value: " + gameType);
@@ -169,10 +178,7 @@ public class TableVisualization implements Runnable {
 
         //setting up cards
         removeFrameElements();
-        /*createCardButtons();
-        placeCards();
-        addCardsToTable();*/
-        TableElementsDesc tempTableElementsDesc = tableInit.placeElements(submitButton, waitingLabel, activeCardsDesc, mainPanel, statusLabel);
+        TableElementsDesc tempTableElementsDesc = tableLayoutManager.placeElements(submitButton, waitingLabel, activeCardsDesc, mainPanel, statusesText);
         firstPLCardLabels = new ArrayList<JLabel>();
         firstPLCardLabels = tempTableElementsDesc.firstPLCardLabels;
         mainPanel = tempTableElementsDesc.mainPanel;
@@ -275,7 +281,7 @@ public class TableVisualization implements Runnable {
         }
 
 
-        for (int i = 0; i < firstPlCardsNum - 2; i++) {
+        for (int i = 0; i < firstPlCardsNum - 1; i++) {
             for (int j = 0; j < firstPlCardsNum - 1; j++) {
                 if (tempCardsDesc.get(sortedValues.get(j + 1)).cardSuit > tempCardsDesc.get(sortedValues.get(j)).cardSuit) {
                     int tempValue = sortedValues.get(j);
@@ -308,7 +314,8 @@ public class TableVisualization implements Runnable {
     }
 
     private boolean isEndOfGame(ActiveCardsDesc activeCardsDesc) {
-        return activeCardsDesc.secondPLCardsNum == END_OF_GAME;
+        //return activeCardsDesc.secondPLCardsNum == END_OF_GAME;
+        return activeCardsDesc.endOfGameReached; 
     }
 
     private void cardButtonPressed(int cardNum) {
@@ -366,6 +373,7 @@ public class TableVisualization implements Runnable {
         switch (gameType) {
             case PUTTING_CARDS:
                 logger.debug("End of putting cards");
+                statusesText.put("additionalStatus", statusTextGenerator.getAdditionalText("LEADING"));
                 activeCardsDesc = gameServer.setLastMove(serverID, plName, END_OF_PUTTING_CARDS);
                 gameType = LEADING;
                 drawTable(activeCardsDesc, mainFrame, gameType);
@@ -387,9 +395,10 @@ public class TableVisualization implements Runnable {
                     }
                 }
                 if (!stopCurrGame) {
-                    activeCardsDesc.selectedCard = sortFirstPLLabels(activeCardsDesc.firstPLCards).get(activeCardsDesc.selectedCard);
+                    activeCardsDesc.selectedCard = sortFirstPLLabels(activeCardsDesc.firstPLCards).get(0);
                     logger.debug("redrawing table...");
-                    statusLabel.setText("STATUS: waiting for second player move...");
+                    statusesText.put("additionalStatus", statusTextGenerator.getAdditionalText("MOVE_WAITING"));
+                    statusesText.put("mainStatus", "STATUS: waiting for second player move...");
                     drawTable(activeCardsDesc, mainFrame, gameType);
                     submitButton.setEnabled(false);
                     gameType = TAKING_CARDS;
@@ -409,9 +418,10 @@ public class TableVisualization implements Runnable {
                     }
                 }
                 logger.debug("activeCardsDesc.selectedCard" + activeCardsDesc.selectedCard);
-                activeCardsDesc.selectedCard = sortFirstPLLabels(activeCardsDesc.firstPLCards).get(activeCardsDesc.selectedCard);
+                activeCardsDesc.selectedCard = sortFirstPLLabels(activeCardsDesc.firstPLCards).get(0);
                 logger.debug("redrawing table...");
-                statusLabel.setText("STATUS: waiting for second player move...");
+                statusesText.put("additionalStatus", statusTextGenerator.getAdditionalText("MOVE_WAITING"));
+                statusesText.put("mainStatus", "STATUS: waiting for second player move...");
                 drawTable(activeCardsDesc, mainFrame, gameType);
                 gameType = BEATING_OFF;
                 submitButton.setEnabled(false);
@@ -476,6 +486,8 @@ public class TableVisualization implements Runnable {
         }
     }
 
+    
+
     private void sendSelectedCard() {
         isSend = false;
         boolean retryConnection = true;
@@ -524,7 +536,7 @@ public class TableVisualization implements Runnable {
             } else {
                 if (isEndOfGame(tempActiveCardsDesc)) {
                     logger.debug("end of game reached");
-                    removeFrameElements();
+                    drawTable(tempActiveCardsDesc, mainFrame, gameType);
                     mainFrame.validate();
                     JOptionPane.showMessageDialog(mainFrame, "<html><center>YOU HAVE WON!!!<br>Starting new game...</center></html>", "Congratulation", JOptionPane.INFORMATION_MESSAGE);
                     exchanger.put(END_GAME_REACHED);
@@ -537,25 +549,27 @@ public class TableVisualization implements Runnable {
                         logger.debug("tempActiveCardsDesc.secondPLCardsNum " + activeCardsDesc.secondPLCardsNum);
                         tempActiveCardsDesc.selectedCard = 0;
                         activeCardsDesc = tempActiveCardsDesc;
-                        activeCardsDesc.selectedCard = sortFirstPLLabels(activeCardsDesc.firstPLCards).get(activeCardsDesc.selectedCard);
+                        activeCardsDesc.selectedCard = sortFirstPLLabels(activeCardsDesc.firstPLCards).get(0);
                         logger.debug("redrawing table...");
-                        statusLabel.setText("STATUS: leading, put next card or press End of turn button");
+                        statusesText.put("additionalStatus", "I'll take, gimme more");
+                        statusesText.put("mainStatus", "STATUS: leading, put next card or press End of turn button");
                         drawTable(activeCardsDesc, mainFrame, gameType);
                         submitButton.setEnabled(true);
                     } else {
                         if (tempActiveCardsDesc.cardsOnTable.size() != activeCardsDesc.cardsOnTable.size()) {
                             logger.debug("tempActiveCardsDesc.secondPLCardsNum " + activeCardsDesc.secondPLCardsNum);
                             activeCardsDesc = tempActiveCardsDesc;
-                            activeCardsDesc.selectedCard = sortFirstPLLabels(activeCardsDesc.firstPLCards).get(activeCardsDesc.selectedCard);
+                            activeCardsDesc.selectedCard = sortFirstPLLabels(activeCardsDesc.firstPLCards).get(0);
                             logger.debug("redrawing table...");
-                            statusLabel.setText("STATUS: waiting for second player move...");
+                            statusesText.put("additionalStatus", statusTextGenerator.getAdditionalText("MOVE_WAITING"));
+                            statusesText.put("mainStatus", "STATUS: waiting for second player move...");
                             drawTable(activeCardsDesc, mainFrame, gameType);
                             submitButton.setEnabled(false);
                             logger.debug("starting waiting card thread...");
                             new Thread(this, "Last move waiting thread").start();
                         } else {
                             activeCardsDesc = tempActiveCardsDesc;
-                            activeCardsDesc.selectedCard = sortFirstPLLabels(activeCardsDesc.firstPLCards).get(activeCardsDesc.selectedCard);
+                            activeCardsDesc.selectedCard = sortFirstPLLabels(activeCardsDesc.firstPLCards).get(0);
                             logger.debug("redrawing table...");
                             drawTable(activeCardsDesc, mainFrame, gameType);
                         }
@@ -564,6 +578,8 @@ public class TableVisualization implements Runnable {
             }
         }
     }
+
+    //private void
 
     public void run() {
         if (!isSend) {
@@ -591,7 +607,7 @@ public class TableVisualization implements Runnable {
             } else {
                 if (activeCardsDesc.endOfGameReached) {
                     logger.debug("end of game reached");
-                    removeFrameElements();
+                    drawTable(activeCardsDesc, mainFrame, gameType);
                     mainFrame.validate();
                     JOptionPane.showMessageDialog(mainFrame, "<html><center>YOU HAVE LOST!!!<br>Starting new game...</center></html>", "Condolence", JOptionPane.INFORMATION_MESSAGE);
                     exchanger.put(END_GAME_REACHED);
@@ -609,7 +625,8 @@ public class TableVisualization implements Runnable {
                                 logger.debug("Game type changed to taking cards");
                                 break;
                             case END_OF_TAKING_CARDS:
-                                statusLabel.setText("STATUS: waiting for second player move...");
+                                statusesText.put("additionalStatus", statusTextGenerator.getAdditionalText("MOVE_WAITING"));
+                                statusesText.put("mainStatus", "STATUS: waiting for second player move...");
                                 drawTable(activeCardsDesc, mainFrame, gameType);
                                 submitButton.setEnabled(false);
                                 gameType = BEATING_OFF;
@@ -620,7 +637,7 @@ public class TableVisualization implements Runnable {
                         }
                         activeCardsDesc.selectedCard = 0;
                     } else {
-                        activeCardsDesc.selectedCard = sortFirstPLLabels(activeCardsDesc.firstPLCards).get(activeCardsDesc.selectedCard);
+                        activeCardsDesc.selectedCard = sortFirstPLLabels(activeCardsDesc.firstPLCards).get(0);
                         //checking if gameType changed
                         if (activeCardsDesc.cardsOnTable.size() == 0 & gameType == BEATING_OFF) {
                             logger.debug("Changing game type...");
@@ -632,16 +649,20 @@ public class TableVisualization implements Runnable {
                     logger.debug("gameType " + gameType);
                     switch (gameType) {
                         case LEADING:
-                            statusLabel.setText("STATUS: leading, put next card or press End of turn button");
+                            statusesText.put("additionalStatus", statusTextGenerator.getAdditionalText("LEADING"));
+                            statusesText.put("mainStatus", "STATUS: leading, put next card or press End of turn button");
                             break;
                         case BEATING_OFF:
-                            statusLabel.setText("STATUS: beating off, put next card or press End of turn button");
+                            statusesText.put("additionalStatus", statusTextGenerator.getAdditionalText("BEATING_OFF"));
+                            statusesText.put("mainStatus", "STATUS: beating off, put next card or press End of turn button");
                             break;
                         case TAKING_CARDS:
-                            statusLabel.setText("STATUS: taking cards, waiting for next card");
+                            statusesText.put("additionalStatus", statusTextGenerator.getAdditionalText("MOVE_WAITING"));
+                            statusesText.put("mainStatus", "STATUS: taking cards, waiting for next card");
                             break;
                         case PUTTING_CARDS:
-                            statusLabel.setText("STATUS: leading, put next card or press End of turn button");
+                            statusesText.put("mainStatus", "STATUS: leading, put next card or press End of turn button");
+                            statusesText.put("additionalStatus", "I'll take, gimme more");
                             break;
                         default:
                             logger.error("Unexpected gameType value: " + gameType);
