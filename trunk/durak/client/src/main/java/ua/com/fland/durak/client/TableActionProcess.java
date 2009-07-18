@@ -32,11 +32,8 @@ import java.util.List;
  * along with this program.  If not, see <a href="http://www.gnu.org/licenses/">GNU Licenses</a><br>
  */
 public class TableActionProcess {
-    private static final Logger logger = Logger.getLogger(TableActionProcess.class);
+    /*private static final Logger logger = Logger.getLogger(TableActionProcess.class);
 
-    //private JFrame mainFrame;
-    /*private List<JToggleButton> firstPLCardButtons;
-    private List<JToggleButton> cardsOnTableButtons;*/
     private List<CardDesc> cardsOnTableValues;
     private List<CardDesc> firstPLCardsValues;
 
@@ -56,20 +53,14 @@ public class TableActionProcess {
     private final static byte LEADING = 0;
     private final static byte BEATING_OFF = 1;
 
-    //exchanger statuses
-    /*private final static byte GETTING_LAST_MOVE = 0;
-    private final static byte TABLE_CHANGED = 1;*/
-
     private final static String url = "http://81.22.135.175:8080/gameServer";
 
     /**
      * Interface for Hessian connection
      */
-    private GameServer gameServer;
+    /*private GameServer gameServer;
 
     public TableActionProcess(ActiveCardsDesc activeCardsDesc, int selectedCard, String serverID, byte plName) {
-        /*firstPLCardButtons = new ArrayList<JToggleButton>();
-        cardsOnTableButtons = new ArrayList<JToggleButton>();*/
         initConnection();
 
         cardsOnTableValues = new ArrayList<CardDesc>();
@@ -89,22 +80,22 @@ public class TableActionProcess {
         CardDesc tempCardDesc;
         //forming cardsOnTableValues
         cardsOnTableValues = new ArrayList<CardDesc>();
-        logger.debug("cardsOnTable.size() " + activeCardsDesc.cardsOnTable.size());
-        for (int i = 0; i < activeCardsDesc.cardsOnTable.size(); i++) {
+        logger.debug("cardsOnTable.size() " + activeCardsDesc.getCardsOnTable().size());
+        for (int i = 0; i < activeCardsDesc.getCardsOnTable().size(); i++) {
             tempCardDesc = new CardDesc();
-            tempCardDesc.cardSuit = activeCardsDesc.cardsOnTable.get(i);
+            tempCardDesc.cardSuit = activeCardsDesc.getCardsOnTable().get(i);
             ++i;
-            tempCardDesc.cardValue = activeCardsDesc.cardsOnTable.get(i);
+            tempCardDesc.cardValue = activeCardsDesc.getCardsOnTable().get(i);
             cardsOnTableValues.add(tempCardDesc);
         }
 
         //forming firstPLCardsValues
         firstPLCardsValues = new ArrayList<CardDesc>();
-        for (int i = 0; i < activeCardsDesc.firstPLCards.size(); i++) {
+        for (int i = 0; i < activeCardsDesc.getFirstPLCards().size(); i++) {
             tempCardDesc = new CardDesc();
-            tempCardDesc.cardSuit = activeCardsDesc.firstPLCards.get(i);
+            tempCardDesc.cardSuit = activeCardsDesc.getFirstPLCards().get(i);
             ++i;
-            tempCardDesc.cardValue = activeCardsDesc.firstPLCards.get(i);
+            tempCardDesc.cardValue = activeCardsDesc.getFirstPLCards().get(i);
             firstPLCardsValues.add(tempCardDesc);
         }
 
@@ -113,7 +104,7 @@ public class TableActionProcess {
             logger.debug(firstPLCardsValues.get(i).cardSuit);
             logger.debug(firstPLCardsValues.get(i).cardValue);
         }*/
-    }
+    /*}
 
     public ActiveCardsDesc cardButtonPressed(int cardNum, ActiveCardsDesc activeCardsDesc, byte gameType) {
         this.activeCardsDesc = activeCardsDesc;
@@ -131,11 +122,11 @@ public class TableActionProcess {
                 default:
                     logger.error("Unexpected value of gameType: " + gameType);
             }
-            this.activeCardsDesc.selectedCard = 0;
+            this.activeCardsDesc.setSelectedCard(0);
             selectedCard = 0;
         } else {
             //setting other selected card
-            this.activeCardsDesc.selectedCard = cardNum;
+            this.activeCardsDesc.setSelectedCard(cardNum);
             selectedCard = cardNum;
         }
         return this.activeCardsDesc;
@@ -161,12 +152,12 @@ public class TableActionProcess {
 
     private void updateActiveCardsDesc() {
         //forming new firstPLCards
-        activeCardsDesc.firstPLCards = new ArrayList<Integer>();
+        activeCardsDesc.setFirstPLCards(new ArrayList<Integer>());
         for (int i = 0; i < firstPLCardsValues.size(); i++) {
             activeCardsDesc.firstPLCards.add(firstPLCardsValues.get(i).cardSuit);
             activeCardsDesc.firstPLCards.add(firstPLCardsValues.get(i).cardValue);
         }
-        logger.debug(activeCardsDesc.firstPLCards);
+        logger.debug(activeCardsDesc.getFirstPLCards());
 
         //forming new cardsOnTable
         activeCardsDesc.cardsOnTable = new ArrayList<Integer>();
@@ -174,7 +165,7 @@ public class TableActionProcess {
             activeCardsDesc.cardsOnTable.add(cardsOnTableValues.get(i).cardSuit);
             activeCardsDesc.cardsOnTable.add(cardsOnTableValues.get(i).cardValue);
         }
-        logger.debug(activeCardsDesc.cardsOnTable);
+        logger.debug(activeCardsDesc.getCardsOnTable());
     }
 
     private void processSuccessTurn(int cardNum) {
@@ -210,7 +201,7 @@ public class TableActionProcess {
     /**
      * Initializing connection, which is using Hessian
      */
-    private void initConnection() {
+    /*private void initConnection() {
         //String url = "http://81.22.135.175:8080/gameServer";
 
         HessianProxyFactory factory = new HessianProxyFactory();
@@ -219,5 +210,5 @@ public class TableActionProcess {
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
-    }
+    }*/
 }

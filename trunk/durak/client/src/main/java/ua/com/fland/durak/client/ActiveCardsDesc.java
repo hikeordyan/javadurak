@@ -29,13 +29,13 @@ import java.util.List;
  */
 
 public class ActiveCardsDesc implements Serializable {
-    public int secondPLCardsNum;
-    public List<Integer> cardsOnTable;
-    public List<Integer> firstPLCards;
-    public int selectedCard;
-    public boolean timeOutReached;
-    public boolean endOfGameReached;
-    public byte leftCardNum;
+    private int secondPLCardsNum;
+    private List<Integer> cardsOnTable;
+    private List<Integer> firstPLCards;
+    private int selectedCard;
+    private boolean timeOutReached;
+    private boolean endOfGameReached;
+    private byte leftCardNum;
 
     public ActiveCardsDesc() {
         cardsOnTable = new ArrayList<Integer>();
@@ -43,5 +43,69 @@ public class ActiveCardsDesc implements Serializable {
         timeOutReached = false;
         endOfGameReached = false;
         leftCardNum = 0;
+    }
+
+    public int getSecondPLCardsNum() {
+        return secondPLCardsNum;
+    }
+
+    public List<Integer> getCardsOnTable() {
+        return cardsOnTable;
+    }
+
+    public List<Integer> getFirstPLCards() {
+        return firstPLCards;
+    }
+
+    public int getSelectedCard() {
+        return selectedCard;
+    }
+
+    public boolean isTimeOutReached() {
+        return timeOutReached;
+    }
+
+    public boolean isEndOfGameReached() {
+        return endOfGameReached;
+    }
+
+    public byte getLeftCardNum() {
+        return leftCardNum;
+    }
+
+    public void setSecondPLCardsNum(int secondPLCardsNum) {
+        this.secondPLCardsNum = secondPLCardsNum;
+    }
+
+    public void setCardsOnTable(List<Integer> cardsOnTable) {
+        this.cardsOnTable = cardsOnTable;
+    }
+
+    public void setFirstPLCards(List<Integer> firstPLCards) {
+        this.firstPLCards = firstPLCards;
+    }
+
+    public void setSelectedCard(int selectedCard) {
+        this.selectedCard = selectedCard;
+    }
+
+    public void setTimeOutReached(boolean timeOutReached) {
+        this.timeOutReached = timeOutReached;
+    }
+
+    public void setEndOfGameReached(boolean endOfGameReached) {
+        this.endOfGameReached = endOfGameReached;
+    }
+
+    public void setLeftCardNum(byte leftCardNum) {
+        this.leftCardNum = leftCardNum;
+    }
+
+    public void addFirstPLCards(int card){
+        this.firstPLCards.add(card);
+    }
+
+    public void addCardsOnTable(int card){
+        this.cardsOnTable.add(card);
     }
 }
