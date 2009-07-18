@@ -55,7 +55,7 @@ public class TableLayoutManager {
         this.mainPanel.setBackground(new Color(0, 150, 0));
 
         //placing secondPL cards
-        List<JLabel> secondPLCardLabels = placeSecondPLCards(activeCardsDesc.secondPLCardsNum);
+        List<JLabel> secondPLCardLabels = placeSecondPLCards(activeCardsDesc.getSecondPLCardsNum());
 
         //placing message line with some additional status
         JPanel additionalStatusPanel = BoxLayoutUtils.createHorizontalPanel();
@@ -76,9 +76,9 @@ public class TableLayoutManager {
         this.mainPanel.add(additionalStatusPanel);
 
         //placing cardsOnTable
-        List<JLabel> cardsOnTableLabels = placeCardsOnTable(activeCardsDesc.cardsOnTable, activeCardsDesc.leftCardNum);
+        List<JLabel> cardsOnTableLabels = placeCardsOnTable(activeCardsDesc.getCardsOnTable(), activeCardsDesc.getLeftCardNum());
         //placing firstPl cards
-        List<JLabel> firstPLCardLabels = placeFirstPLCards(activeCardsDesc.firstPLCards, activeCardsDesc.selectedCard);
+        List<JLabel> firstPLCardLabels = placeFirstPLCards(activeCardsDesc.getFirstPLCards(), activeCardsDesc.getSelectedCard());
 
         //placing submitButton and waiting animation
         JPanel buttonPanel = BoxLayoutUtils.createHorizontalPanel();
@@ -97,7 +97,7 @@ public class TableLayoutManager {
         this.mainPanel.add(buttonPanel);
         this.mainPanel.add(statusPanel);
 
-        logger.debug("leftCardNum: " + activeCardsDesc.leftCardNum);
+        logger.debug("leftCardNum: " + activeCardsDesc.getLeftCardNum());
 
         return new TableElementsDesc(firstPLCardLabels, cardsOnTableLabels, secondPLCardLabels, submitButton, this.mainPanel);
     }

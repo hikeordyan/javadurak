@@ -31,8 +31,8 @@ public class TableInitTest {
         ActiveCardsDesc activeCardsDesc = new ActiveCardsDesc();
         Random random = new Random();
         for (int i = 0; i < 12; i++){
-            activeCardsDesc.firstPLCards.add(random.nextInt(3));
-            activeCardsDesc.firstPLCards.add(random.nextInt(14));
+            activeCardsDesc.addFirstPLCards(random.nextInt(3));
+            activeCardsDesc.addFirstPLCards(random.nextInt(14));
         }
         
     }

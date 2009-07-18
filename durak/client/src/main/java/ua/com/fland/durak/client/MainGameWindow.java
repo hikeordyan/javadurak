@@ -209,16 +209,15 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
         logger.debug("Showing frame");
         mainFrame.setVisible(true);
 
-        /*logger.debug("Creating NewGame frame");
-        startGameFrame = new StartGameWindow(exchanger);
-        logger.debug("Showing NewGame frame...");
-        new Thread(this, "Start MainGameWindow change").start();
-        startGameFrame.setVisible(true);*/
         showStartNewGameWindow();
     }
 
     private boolean noConnectionPrevention(HessianRuntimeException hre) {
         logger.error("Cann't connect to " + url + " " + hre);
+        return noConnectionPrevention();
+    }
+
+    private boolean noConnectionPrevention(){
         Object[] options = {"Yes",
                 "No, exit the game"};
 
@@ -239,22 +238,7 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
 
     private boolean noConnectionPrevention(HessianConnectionException hce) {
         logger.error("Cann't connect to " + url + " " + hce);
-        Object[] options = {"Yes",
-                "No, exit the game"};
-
-        switch (JOptionPane.showOptionDialog(mainFrame, "Cann't connect to game server. Check your firewall settings or in-game proxy settings. Retry connection?", "Error",
-                JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE, null, options, options[1])) {
-            case JOptionPane.YES_OPTION:
-                return true;
-            case JOptionPane.NO_OPTION:
-                logger.debug("Exiting the game...");
-                mainFrame.validate();
-                mainFrame.setVisible(false);
-                System.exit(0);
-                return false;
-            default:
-                return true;
-        }
+        return noConnectionPrevention();
     }
 
     public void run() {
@@ -284,6 +268,7 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
                 getPrimaryGameData();
                 break;
             case END_GAME_REACHED:
+                tableVisualization = null;
                 logger.debug("starting new game...");
                 reInitMainFrame();
                 break;
@@ -309,8 +294,8 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
                 retryConnection = noConnectionPrevention(hce);
             }
         }
-        logger.debug("Got my cards:" + activeCardsDesc.firstPLCards);
-        logger.debug("Cards on table" + activeCardsDesc.cardsOnTable);
+        logger.debug("Got my cards:" + activeCardsDesc.getFirstPLCards());
+        logger.debug("Cards on table" + activeCardsDesc.getCardsOnTable());
         refreshTable();
     }
 
@@ -325,7 +310,7 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
         logger.debug("Refreshing table...");
         /*TableVisualization*/
         tableVisualization = new TableVisualization(plName, serverID, exchanger);
-        activeCardsDesc.selectedCard = 0;
+        activeCardsDesc.setSelectedCard(0);
         tableVisualization.drawTable(activeCardsDesc, mainFrame, gameType);
         new Thread(this, "Start TableVisualization change").start();
     }
