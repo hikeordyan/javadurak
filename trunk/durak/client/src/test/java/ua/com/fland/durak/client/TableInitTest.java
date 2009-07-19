@@ -1,5 +1,7 @@
 package ua.com.fland.durak.client;
 
+import org.junit.Test;
+
 import java.util.Random;
 
 /**
@@ -27,6 +29,7 @@ import java.util.Random;
  */
 
 public class TableInitTest {
+    @Test
     public void testCardsSorting(){
         ActiveCardsDesc activeCardsDesc = new ActiveCardsDesc();
         Random random = new Random();
