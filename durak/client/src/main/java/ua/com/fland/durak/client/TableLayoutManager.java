@@ -83,6 +83,9 @@ public class TableLayoutManager {
         //placing submitButton and waiting animation
         JPanel buttonPanel = BoxLayoutUtils.createHorizontalPanel();
         buttonPanel.setOpaque(false);
+        if (cardsOnTableLabels.size() == 0) {
+            submitButton.setEnabled(false);
+        }
         buttonPanel.add(submitButton);
         buttonPanel.add(waitingLabel);
 

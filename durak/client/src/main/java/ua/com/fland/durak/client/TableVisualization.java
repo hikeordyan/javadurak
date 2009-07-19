@@ -371,6 +371,7 @@ public class TableVisualization implements Runnable {
                 statusesText.put("additionalStatus", statusTextGenerator.getAdditionalText("LEADING"));
                 activeCardsDesc = gameServer.setLastMove(serverID, plName, END_OF_PUTTING_CARDS);
                 gameType = LEADING;
+                submitButton.setEnabled(false);
                 drawTable(activeCardsDesc, mainFrame, gameType);
                 break;
             case TAKING_CARDS:
@@ -529,7 +530,7 @@ public class TableVisualization implements Runnable {
         } else {
             JOptionPane.showMessageDialog(mainFrame, "<html><center>YOU HAVE WON!!!<br>Starting new game...</center></html>", "Congratulation", JOptionPane.INFORMATION_MESSAGE);
         }
-        
+
         removeFrameElements();
         mainFrame.validate();
         exchanger.put(END_GAME_REACHED);
@@ -637,6 +638,7 @@ public class TableVisualization implements Runnable {
                 timeOutReached(mainFrame, exchanger, false);
             } else {
                 if (activeCardsDesc.isEndOfGameReached()) {
+                    activeCardsDesc.setSelectedCard(0);
                     endOfGameReached(activeCardsDesc, mainFrame, gameType, exchanger, true);
                 } else {
                     //checking if game type changed to taking cards
@@ -669,6 +671,7 @@ public class TableVisualization implements Runnable {
                         if (activeCardsDesc.getCardsOnTable().size() == 0 & gameType == BEATING_OFF) {
                             logger.debug("Changing game type...");
                             gameType = LEADING;
+                            submitButton.setEnabled(false);
                         }
                     }
                     logger.debug("Last move got, re-drawing table...");
