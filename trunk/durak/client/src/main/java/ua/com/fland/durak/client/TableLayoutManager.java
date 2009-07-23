@@ -80,7 +80,7 @@ public class TableLayoutManager {
         //placing firstPl cards
         List<JLabel> firstPLCardLabels = placeFirstPLCards(activeCardsDesc.getFirstPLCards(), activeCardsDesc.getSelectedCard());
 
-        //placing submitButton and waiting animation
+        //placing submitButton, waiting animation and status bar
         JPanel buttonPanel = BoxLayoutUtils.createHorizontalPanel();
         buttonPanel.setOpaque(false);
         if (cardsOnTableLabels.size() == 0) {
@@ -91,13 +91,12 @@ public class TableLayoutManager {
 
         JPanel statusPanel = BoxLayoutUtils.createHorizontalPanel();
         statusPanel.setOpaque(false);
-        statusPanel.add(Box.createHorizontalStrut(10));
-        JLabel statusLabel = new JLabel(statusesText.get("mainStatus"));
-        statusLabel.setPreferredSize(new Dimension(STATUS_LABEL_LENGTH, 20));
-        statusLabel.setForeground(Color.white);
-        statusPanel.add(statusLabel);
-        statusPanel.add(Box.createHorizontalGlue());
+        /*StatusBar tempStatusBar = new StatusBar();
+        tempStatusBar.setText(statusesText.get("mainStatus"));*/
+        statusPanel.add(new StatusBar(statusesText.get("mainStatus")));
+        //statusPanel.add(Box.createHorizontalGlue());
         this.mainPanel.add(buttonPanel);
+        //this.mainPanel.add(Box.createVerticalGlue());
         this.mainPanel.add(statusPanel);
 
         logger.debug("leftCardNum: " + activeCardsDesc.getLeftCardNum());
@@ -260,6 +259,11 @@ public class TableLayoutManager {
         Map<Integer, Integer> asortedValues = asortedFirstPLLabels(firstPLCards);
 
         int cardNum = sortedValues.size();
+        logger.debug("cardNum: " + cardNum);
+        if (cardNum < 1) {
+            logger.debug("Creating another empty row in firstPLCards");
+            firstCardsLabelRow.add(Box.createRigidArea(new Dimension(0, 110)));
+        }
         if (cardNum < 13) {
             logger.debug("creating empty row in firstPLCards");
             secondCardsLabelRow.add(Box.createRigidArea(new Dimension(0, 110)));
@@ -329,7 +333,11 @@ public class TableLayoutManager {
         JPanel secondCardsLabelRow = BoxLayoutUtils.createHorizontalPanel();
         secondCardsLabelRow.setOpaque(false);
         int cardNum = secondPLCardsNum;
-        if (secondPLCardsNum < 13) {
+        if (cardNum < 1) {
+            logger.debug("Creating another empty row in secondPLCards");
+            firstCardsLabelRow.add(Box.createRigidArea(new Dimension(0, 100)));
+        }
+        if (cardNum < 13) {
             logger.debug("creating free space...");
             secondCardsLabelRow.add(Box.createRigidArea(new Dimension(0, 110)));
         } else {

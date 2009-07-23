@@ -90,6 +90,7 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
         mainFrame.setSize(1024, 768);
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainFrame.getContentPane().setBackground(new Color(0, 150, 0));
+        //mainFrame.setResizable(false);
         initMenues();
 
         logger.debug("Setting other params");
@@ -198,6 +199,7 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
         mainFrame.setSize(1024, 768);
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainFrame.getContentPane().setBackground(new Color(0, 150, 0));
+        //mainFrame.setResizable(false);
 
         logger.debug("Setting other params");
         //getPrimaryNetworkData();
