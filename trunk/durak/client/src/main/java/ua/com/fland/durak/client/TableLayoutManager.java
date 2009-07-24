@@ -91,12 +91,8 @@ public class TableLayoutManager {
 
         JPanel statusPanel = BoxLayoutUtils.createHorizontalPanel();
         statusPanel.setOpaque(false);
-        /*StatusBar tempStatusBar = new StatusBar();
-        tempStatusBar.setText(statusesText.get("mainStatus"));*/
         statusPanel.add(new StatusBar(statusesText.get("mainStatus")));
-        //statusPanel.add(Box.createHorizontalGlue());
         this.mainPanel.add(buttonPanel);
-        //this.mainPanel.add(Box.createVerticalGlue());
         this.mainPanel.add(statusPanel);
 
         logger.debug("leftCardNum: " + activeCardsDesc.getLeftCardNum());

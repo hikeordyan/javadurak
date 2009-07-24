@@ -31,47 +31,6 @@ public class StatusBar extends JPanel {
     private JLabel textLabel;
 
     public StatusBar() {
-        /*setLayout(new BorderLayout());
-        setPreferredSize(new Dimension(10, 23));
-
-        JPanel rightPanel = new JPanel(new BorderLayout());
-        rightPanel.add(new JLabel(new AngledLinesWindowsCornerIcon()), BorderLayout.SOUTH);
-        rightPanel.setOpaque(false);
-
-        add(rightPanel, BorderLayout.EAST);
-
-        JPanel leftPanel = new JPanel(new BorderLayout());
-        textLabel = new JLabel("");
-        leftPanel.add(textLabel, BorderLayout.SOUTH);
-        leftPanel.setOpaque(false);
-
-        add(leftPanel, BorderLayout.WEST);
-        setBackground(SystemColor.control);*/
-        statusBar();
-    }
-
-    public StatusBar(String text){
-        /*setLayout(new BorderLayout());
-        setPreferredSize(new Dimension(10, 23));
-
-        JPanel rightPanel = new JPanel(new BorderLayout());
-        rightPanel.add(new JLabel(new AngledLinesWindowsCornerIcon()), BorderLayout.SOUTH);
-        rightPanel.setOpaque(false);
-
-        add(rightPanel, BorderLayout.EAST);
-
-        JPanel leftPanel = new JPanel(new BorderLayout());
-        textLabel = new JLabel(text);
-        leftPanel.add(textLabel, BorderLayout.SOUTH);
-        leftPanel.setOpaque(false);
-
-        add(leftPanel, BorderLayout.WEST);
-        setBackground(SystemColor.control);*/
-        statusBar();
-        textLabel.setText(text);
-    }
-
-    private void statusBar(){
         setLayout(new BorderLayout());
         setPreferredSize(new Dimension(10, 23));
 
@@ -88,6 +47,11 @@ public class StatusBar extends JPanel {
 
         add(leftPanel, BorderLayout.WEST);
         setBackground(SystemColor.control);
+    }
+
+    public StatusBar(String text){
+        this();
+        textLabel.setText(text);
     }
 
     public void setText(String text){
