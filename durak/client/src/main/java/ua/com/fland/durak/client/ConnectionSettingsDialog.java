@@ -49,7 +49,7 @@ public class ConnectionSettingsDialog extends JDialog {
 
         logger.debug("ConnectionSettingsDialog inited");
 
-        this.setTitle("Connection Settings");
+        this.setTitle(TextsGetter.getText("connectionSettingsDialog.title"));
         //this.setResizable(false);
         this.setSize(300, 200);
         this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -120,15 +120,15 @@ public class ConnectionSettingsDialog extends JDialog {
 
         proxyHost = new JTextField(20);
         proxyHost.setText(System.getProperty("http.proxyHost"));
-        proxyHostLabel = new JLabel("Proxy host");
+        proxyHostLabel = new JLabel(TextsGetter.getText("connectionSettingsDialog.proxyHost"));
         proxyHostLabel.setLabelFor(proxyHost);
 
         proxyPort = new JTextField(5);
         proxyPort.setText(System.getProperty("http.proxyPort"));
-        proxyPortLabel = new JLabel("Proxy port");
+        proxyPortLabel = new JLabel(TextsGetter.getText("connectionSettingsDialog.proxyPort"));
         proxyPortLabel.setLabelFor(proxyPort);
 
-        isUsingProxy = new JCheckBox("Use proxy");
+        isUsingProxy = new JCheckBox(TextsGetter.getText("connectionSettingsDialog.useProxy"));
         if (System.getProperty("http.proxyHost") != null & System.getProperty("http.proxyPort") != null) {
             if (!System.getProperty("http.proxyPort").equals("") & !System.getProperty("http.proxyHost").equals("")) {
                 isUsingProxy.setSelected(true);
@@ -137,14 +137,14 @@ public class ConnectionSettingsDialog extends JDialog {
             isUsingProxy.setSelected(false);
         }
 
-        okButton = new JButton("OK");
+        okButton = new JButton(TextsGetter.getText("buttons.ok"));
         okButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ae) {
                 okButtonClicked();
             }
         });
 
-        cancelButton = new JButton("Cancel");
+        cancelButton = new JButton(TextsGetter.getText("buttons.cancel"));
         cancelButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ae) {
                 cancelButtonClicked();

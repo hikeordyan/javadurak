@@ -12,6 +12,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.net.MalformedURLException;
+import java.util.Locale;
 
 /**
  * Created by IntelliJ IDEA.<br>
@@ -82,9 +83,15 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
     MainGameWindow() {
         /*logger.debug("Showing waiting bar");
         WaitingDialog tempWaitingDialog = new WaitingDialog();*/
+        //some tests
+        /*String[] texts = TextsGetter.getText("additinonalStatus.moveWaiting").split(";");
+        for (int i = 0; i < texts.length; i++) {
+            logger.debug(texts[i]);
+        }*/
 
         logger.debug("Creating new frame");
         mainFrame = new JFrame("Cards");
+        mainFrame.setTitle(TextsGetter.getText("mainWindow.title"));
 
         logger.debug("Setting frame params");
         mainFrame.setSize(1024, 768);
@@ -114,22 +121,47 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
         startGameFrame.setVisible(true);
     }
 
+    private void updateMainGameWindowTexts() {
+        logger.debug("Updating mainGameWindowTexts...");
+        initMenues();
+        mainFrame.setTitle(TextsGetter.getText("mainWindow.title"));
+    }
+
     private void initMenues() {
         MenuBar mainMenuBar = new MenuBar();
-        Menu settingsMenu = new Menu("Settings", false);
-        MenuItem connectionSettingsMenu = new MenuItem("Connection settings");
+        Menu settingsMenu = new Menu(TextsGetter.getText("mainWindow.menues.settings"), false);
+        MenuItem connectionSettingsMenu = new MenuItem(TextsGetter.getText("mainWindow.menues.settings.connectionSettings"));
         connectionSettingsMenu.setEnabled(true);
         connectionSettingsMenu.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ae) {
-                ConnectionSettingsDialog tempConnectionSettingsDialog = new ConnectionSettingsDialog(mainFrame);
-                tempConnectionSettingsDialog.setVisible(true);
-                tempConnectionSettingsDialog.setModal(true);
+                ConnectionSettingsDialog connectionSettingsDialog = new ConnectionSettingsDialog(mainFrame);
+                connectionSettingsDialog.setVisible(true);
+                connectionSettingsDialog.setModal(true);
+            }
+        });
+
+        MenuItem languageSettingsMenu = new MenuItem(TextsGetter.getText("mainWindow.menues.settings.languageSettings"));
+        languageSettingsMenu.setEnabled(true);
+        languageSettingsMenu.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ae) {
+                LanguageSettingsDialog languageSettingsDialog = new LanguageSettingsDialog(mainFrame);
+                languageSettingsDialog.setVisible(true);
+                languageSettingsDialog.setModal(true);
+                languageSettingsDialog.addWindowListener(new WindowAdapter() {
+                    @Override
+                    public void windowClosed(WindowEvent e) {
+                        logger.debug("languageSettingsDialog closed");
+                        updateMainGameWindowTexts();
+                    }
+                });
+                logger.debug(Locale.getDefault());
             }
         });
         settingsMenu.add(connectionSettingsMenu);
+        settingsMenu.add(languageSettingsMenu);
 
-        Menu helpMenu = new Menu("Help", false);
-        MenuItem aboutGameMenu = new MenuItem("About");
+        Menu helpMenu = new Menu(TextsGetter.getText("mainWindow.menues.help"), false);
+        MenuItem aboutGameMenu = new MenuItem(TextsGetter.getText("mainWindow.menues.help.about"));
         aboutGameMenu.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ae) {
                 AboutDialog tempAboutDialog = new AboutDialog();
@@ -139,8 +171,8 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
         });
         helpMenu.add(aboutGameMenu);
 
-        Menu gameMenu = new Menu("Game", false);
-        MenuItem newGameMenu = new MenuItem("New game");
+        Menu gameMenu = new Menu(TextsGetter.getText("mainWindow.menues.game"), false);
+        MenuItem newGameMenu = new MenuItem(TextsGetter.getText("mainWindow.menues.game.newGame"));
         newGameMenu.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ae) {
                 if (tableVisualization != null) {
@@ -155,7 +187,7 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
 
         gameMenu.addSeparator();
 
-        MenuItem exitGameMenu = new MenuItem("Exit game");
+        MenuItem exitGameMenu = new MenuItem(TextsGetter.getText("mainWindow.menues.game.exitGame"));
         exitGameMenu.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ae) {
                 logger.debug("Exiting the program...");
@@ -219,11 +251,11 @@ public class MainGameWindow /*extends JFrame*/ implements Runnable {
         return noConnectionPrevention();
     }
 
-    private boolean noConnectionPrevention(){
-        Object[] options = {"Yes",
-                "No, exit the game"};
+    private boolean noConnectionPrevention() {
+        Object[] options = {TextsGetter.getText("buttons.yes"),
+                TextsGetter.getText("buttons.noExit")};
 
-        switch (JOptionPane.showOptionDialog(mainFrame, "Cann't connect to game server. Check your firewall settings or in-game proxy settings. Retry connection?", "Error",
+        switch (JOptionPane.showOptionDialog(mainFrame, TextsGetter.getText("noConnectionPrevention.retry"), TextsGetter.getText("noConnectionPrevention.title"),
                 JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE, null, options, options[1])) {
             case JOptionPane.YES_OPTION:
                 return true;

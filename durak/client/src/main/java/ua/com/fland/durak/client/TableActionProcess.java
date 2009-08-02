@@ -1,13 +1,5 @@
 package ua.com.fland.durak.client;
 
-import com.caucho.hessian.client.HessianProxyFactory;
-import org.apache.log4j.Logger;
-
-import javax.swing.*;
-import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Created by IntelliJ IDEA.<br>
  * User: maxim<br>

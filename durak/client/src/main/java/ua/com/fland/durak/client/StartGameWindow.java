@@ -4,9 +4,9 @@
 
 package ua.com.fland.durak.client;
 
+import com.caucho.hessian.client.HessianConnectionException;
 import com.caucho.hessian.client.HessianProxyFactory;
 import com.caucho.hessian.client.HessianRuntimeException;
-import com.caucho.hessian.client.HessianConnectionException;
 import org.apache.log4j.Logger;
 import org.jdesktop.layout.GroupLayout;
 import org.jdesktop.layout.LayoutStyle;
@@ -84,26 +84,26 @@ public class StartGameWindow extends JDialog implements Runnable {
             avaibleServers.setListData(servers);
         } catch (HessianRuntimeException hre) {
             logger.error("Cann't connect to " + url + " " + hre);
-            switch (JOptionPane.showConfirmDialog(this, "Cann't connect to game server. Check your firewall settings or in-game proxy settings. Exit game?", "Error", JOptionPane.YES_NO_OPTION)) {
-                case JOptionPane.YES_OPTION:
-                    logger.debug("Closing  StartGame frame");
-                    mainGameWinExchanger.put(EXIT_GAME);
-                    this.setVisible(false);
-                    this.dispose();
-                    break;
-            }
-        } catch (HessianConnectionException hce){
+            noConnectionPrevention(mainGameWinExchanger, this);
+        } catch (HessianConnectionException hce) {
             logger.error("Cann't connect to " + url + " " + hce);
-            switch (JOptionPane.showConfirmDialog(this, "Cann't connect to game server. Check your firewall settings or in-game proxy settings. Exit game?", "Error", JOptionPane.YES_NO_OPTION)) {
-                case JOptionPane.YES_OPTION:
-                    logger.debug("Closing  StartGame frame");
-                    mainGameWinExchanger.put(EXIT_GAME);
-                    this.setVisible(false);
-                    this.dispose();
-                    break;
-            }
+            noConnectionPrevention(mainGameWinExchanger, this);
         }
 
+    }
+
+    private void noConnectionPrevention(FramesExchanger framesExchanger, JDialog dialog){
+        Object[] options = {TextsGetter.getText("buttons.yes"), TextsGetter.getText("buttons.no")};
+        
+        switch (JOptionPane.showOptionDialog(this, TextsGetter.getText("noConnectionPrevention.exit"), TextsGetter.getText("noConnectionPrevention.title"),
+                JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE, null, options, options[1])) {
+                case JOptionPane.YES_OPTION:
+                    logger.debug("Closing  StartGame frame");
+                    framesExchanger.put(EXIT_GAME);
+                    dialog.setVisible(false);
+                    dialog.dispose();
+                    break;
+            }
     }
 
     private void initConnection() throws MalformedURLException {
@@ -176,7 +176,8 @@ public class StartGameWindow extends JDialog implements Runnable {
             logger.debug("Got server ID " + serverID);
             if (serverID.equals("-noSuchWaitingServerName")) {
                 logger.debug("Showing error window");
-                JOptionPane.showMessageDialog(this, "No \"" + avaibleServers.getSelectedValue().toString() + "\" waiting server name. Select other server.", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, avaibleServers.getSelectedValue().toString() + TextsGetter.getText("startGameWindow.noSuchServerName"),
+                        TextsGetter.getText("noConnectionPrevention.title"), JOptionPane.ERROR_MESSAGE);
                 fillServerList();
             } else {
                 this.setModal(false);
@@ -190,8 +191,10 @@ public class StartGameWindow extends JDialog implements Runnable {
     private void avaibleServersMouseClicked(MouseEvent e) {
         if (avaibleServers.getSelectedValue() != null) {
             String selectedServer = avaibleServers.getSelectedValue().toString();
-            String descText = "<html>Server name: " + selectedServer +
-                    "<br>Server timeout: " + serverNamesTimeouts.get(selectedServer) + " sec</html>";
+            String descText = TextsGetter.getText("startGameWindow.serverDesc.serverName")
+                    + " " + selectedServer + TextsGetter.getText("startGameWindow.serverDesc.serverTimeout")
+                    + " " + serverNamesTimeouts.get(selectedServer)
+                    + " " + TextsGetter.getText("startGameWindow.serverDesc.sec");
             serversDesc.setText(descText);
         }
     }
@@ -218,11 +221,9 @@ public class StartGameWindow extends JDialog implements Runnable {
         }
     }
 
-    private void helpBtnMouseClicked(MouseEvent e){
+    private void helpBtnMouseClicked(MouseEvent e) {
         logger.debug("help button clicked " + e);
-        JOptionPane.showMessageDialog(this, "<html>Press refresh button to get actual server names.<br>" +
-                "Select server to connect and press connect button.<br>" +
-                " Or press create button and create own game server.</html>", "Help", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, TextsGetter.getText("startGameWindow.help"), TextsGetter.getText("helpWindow.title"), JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void initComponents() {
@@ -243,7 +244,7 @@ public class StartGameWindow extends JDialog implements Runnable {
 
         //======== this ========
         setAlwaysOnTop(false);
-        setTitle("Start Game");
+        setTitle(TextsGetter.getText("startGameWindow.title"));
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowActivated(WindowEvent e) {
@@ -290,10 +291,10 @@ public class StartGameWindow extends JDialog implements Runnable {
                 }
 
                 //---- listHeadline ----
-                listHeadline.setText("Avaible game servers");
+                listHeadline.setText(TextsGetter.getText("startGameWindow.listHeadLine"));
 
                 //---- refreshListBtn ----
-                refreshListBtn.setText("Refresh list");
+                refreshListBtn.setText(TextsGetter.getText("buttons.refreshList"));
                 refreshListBtn.addMouseListener(new MouseAdapter() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
@@ -348,7 +349,7 @@ public class StartGameWindow extends JDialog implements Runnable {
                 ((GridBagLayout) buttonBar.getLayout()).columnWeights = new double[]{1.0, 0.0, 0.0, 0.0};
 
                 //---- connectBtn ----
-                connectBtn.setText("Connect");
+                connectBtn.setText(TextsGetter.getText("buttons.connect"));
                 connectBtn.addMouseListener(new MouseAdapter() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
@@ -360,7 +361,7 @@ public class StartGameWindow extends JDialog implements Runnable {
                         new Insets(0, 0, 0, 5), 0, 0));
 
                 //---- createBtn ----
-                createBtn.setText("Create");
+                createBtn.setText(TextsGetter.getText("buttons.create"));
                 createBtn.addMouseListener(new MouseAdapter() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
@@ -372,7 +373,7 @@ public class StartGameWindow extends JDialog implements Runnable {
                         new Insets(0, 0, 0, 5), 0, 0));
 
                 //---- cancelButton ----
-                cancelButton.setText("Cancel");
+                cancelButton.setText(TextsGetter.getText("buttons.cancel"));
                 cancelButton.addMouseListener(new MouseAdapter() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
@@ -384,7 +385,7 @@ public class StartGameWindow extends JDialog implements Runnable {
                         new Insets(0, 0, 0, 5), 0, 0));
 
                 //---- helpButton ----
-                helpButton.setText("Help");
+                helpButton.setText(TextsGetter.getText("buttons.help"));
                 buttonBar.add(helpButton, new GridBagConstraints(3, 0, 1, 1, 0.0, 0.0,
                         GridBagConstraints.CENTER, GridBagConstraints.BOTH,
                         new Insets(0, 0, 0, 0), 0, 0));

@@ -1,11 +1,8 @@
 package ua.com.fland.durak.client;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
 import java.util.*;
-import java.io.InputStream;
-import java.io.IOException;
 
 /**
  * Created by IntelliJ IDEA.<br>
@@ -36,30 +33,27 @@ public class StatusTextGenerator {
 
     private Map<String, List<String>> additionalStatuses;
 
-    public StatusTextGenerator(){
-        List<String> tempList = new ArrayList<String>();
-        //creating phrases for leading
-        tempList.add("OK, put next card");
-        tempList.add("I am waaaating...");
-
+    public StatusTextGenerator() {
         additionalStatuses = new HashMap<String, List<String>>();
-        additionalStatuses.put("LEADING", tempList);
-
-        tempList = new ArrayList<String>();
-        tempList.add("Give me some time");
-        tempList.add("I am thinking...");
-        tempList.add("Oh, very hard situation, wait please");
-        additionalStatuses.put("MOVE_WAITING", tempList);
-
-        tempList = new ArrayList<String>();
-        tempList.add("Are you scared?");
-        tempList.add("Now it's your turn");
-        tempList.add("Parry!");
-        tempList.add("Are you sleeping there?");
-        additionalStatuses.put("BEATING_OFF", tempList);
+        additionalStatuses.put("LEADING", formPhrases("additinonalStatus.leading"));
+        additionalStatuses.put("MOVE_WAITING", formPhrases("additinonalStatus.moveWaiting"));
+        additionalStatuses.put("BEATING_OFF", formPhrases("additinonalStatus.beatingOff"));
+        additionalStatuses.put("TAKING", formPhrases("additinonalStatus.gettingCards"));
     }
 
-    public String getAdditionalText(String gameType){
-        return additionalStatuses.get(gameType).get(new Random().nextInt(additionalStatuses.get(gameType).size()));        
+    private List<String> formPhrases(String gameType) {
+        List<String> tempList = new ArrayList<String>();
+        String[] texts = TextsGetter.getText(gameType).split(";");
+        tempList.addAll(Arrays.asList(texts));
+        return tempList;
+    }
+
+    public String getAdditionalText(String gameType) {
+        if (additionalStatuses.containsKey(gameType)) {
+            return additionalStatuses.get(gameType).get(new Random().nextInt(additionalStatuses.get(gameType).size()));
+        }else{
+            logger.error("Wrong gameType key: " + gameType);
+            return "";
+        }
     }
 }

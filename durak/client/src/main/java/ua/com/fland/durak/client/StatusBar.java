@@ -49,16 +49,16 @@ public class StatusBar extends JPanel {
         setBackground(SystemColor.control);
     }
 
-    public StatusBar(String text){
+    public StatusBar(String text) {
         this();
         textLabel.setText(text);
     }
 
-    public void setText(String text){
+    public void setText(String text) {
         textLabel.setText(text);
     }
 
-    public String getText(){
+    public String getText() {
         return textLabel.getText();
     }
 

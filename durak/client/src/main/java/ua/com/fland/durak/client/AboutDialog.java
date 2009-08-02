@@ -58,14 +58,14 @@ public class AboutDialog extends JDialog {
     }
 
     private void initElements() {
-        textInfo = new JLabel("<html>The Durak Game client<br>ver 2.0.1b rev 178<br>http://www.gnu.org/licenses/gpl.html - " +
+        textInfo = new JLabel("<html>The Durak Game client<br>ver 2.0.1b rev 196<br>http://www.gnu.org/licenses/gpl.html - " +
                 "GNU General Public License</html>");
         ImageIcon gplIcon = new ImageIcon();
-        String waitAnimationName = "gplv3.png";
-        if (getClass().getResource(waitAnimationName) != null) {
-            gplIcon = new ImageIcon(getClass().getResource(waitAnimationName));
+        String licenseIcon = "gplv3.png";
+        if (getClass().getResource(licenseIcon) != null) {
+            gplIcon = new ImageIcon(getClass().getResource(licenseIcon));
         } else {
-            logger.error("Cann't find file: " + waitAnimationName);
+            logger.error("Cann't find file: " + licenseIcon);
         }
         textInfo.setIcon(gplIcon);
         textInfo.setAlignmentX(CENTER_ALIGNMENT);
@@ -81,7 +81,6 @@ public class AboutDialog extends JDialog {
             logger.error("cann't open file " + e);
             license = "Cann't open open file COPYING with license";
         }
-
 
         licenseText = new JTextArea(license);
         licenseText.setWrapStyleWord(true);
