@@ -86,9 +86,6 @@ public class NewGameServerWindow extends JDialog implements Runnable {
 
     //TODO make something with this terrible initConnection in many classes
     private void initConnection() {
-        //url = "http://81.22.135.175:8080/gameServer";
-        //String url = "http://127.0.0.1:8080/gameServer";
-
         factory = new HessianProxyFactory();
         try {
             gameServer = (GameServer) factory.create(GameServer.class, url);
@@ -103,9 +100,11 @@ public class NewGameServerWindow extends JDialog implements Runnable {
             try {
                 gameServer.removeGameServer(waitingServerID);
             } catch (HessianRuntimeException hre) {
-                connectionExceptionCaught(hre);
-            } catch (HessianConnectionException hce){
-                connectionExceptionCaught(hce);
+                logger.error("Cann't connect to " + url + " " + hre);
+                connectionExceptionCaught(this);
+            } catch (HessianConnectionException hce) {
+                logger.error("Cann't connect to " + url + " " + hce);
+                connectionExceptionCaught(this);
             }
         }
         this.setModal(false);
@@ -117,14 +116,8 @@ public class NewGameServerWindow extends JDialog implements Runnable {
         logger.debug("NewGameServerWindow disposed");
     }
 
-    private void connectionExceptionCaught(HessianRuntimeException hre) {
-        logger.error("Cann't connect to " + url + " " + hre);
-        JOptionPane.showMessageDialog(this, "Cann't connect to game server. Check your firewall settings or in-game proxy settings.", "Error", JOptionPane.ERROR_MESSAGE);
-    }
-
-    private void connectionExceptionCaught(HessianConnectionException hce) {
-        logger.error("Cann't connect to " + url + " " + hce);
-        JOptionPane.showMessageDialog(this, "Cann't connect to game server. Check your firewall settings or in-game proxy settings.", "Error", JOptionPane.ERROR_MESSAGE);
+    private void connectionExceptionCaught(JDialog dialog) {
+        JOptionPane.showMessageDialog(dialog, TextsGetter.getText("noConnectionPrevention.ok"), TextsGetter.getText("noConnectionPrevention.title"), JOptionPane.ERROR_MESSAGE);
     }
 
     private void okButtonMouseClicked(MouseEvent e) {
@@ -133,7 +126,7 @@ public class NewGameServerWindow extends JDialog implements Runnable {
                 logger.debug("Getting entered params");
                 if (gameName.getText().equals("") | gameName.getText() == null | (gameName.getText()).length() > 11 | gameServer.getGamesNames().containsValue(gameName.getText())) {
                     logger.debug("Showing error window");
-                    JOptionPane.showMessageDialog(this, "New game server name must be unique and contain more then 0 symbols but less then 12 symbols", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, TextsGetter.getText("newGameServerWindow.serverNamePrev"), TextsGetter.getText("errorTitle"), JOptionPane.ERROR_MESSAGE);
                 } else {
                     logger.debug("Sending params to server");
                     //getting timeout
@@ -159,15 +152,17 @@ public class NewGameServerWindow extends JDialog implements Runnable {
 
                     waitingServerID = gameServer.addGameServer(gameName.getText(), selectedTimeout);
                     gameStatus = PL_WAITING;
-                    statusLabel.setText("Status: Waiting for another player...");
+                    statusLabel.setText(TextsGetter.getText("status.plConnectWaiting"));
                     okButton.setEnabled(false);
                     new Thread(this, "Client waiting...").start();
                     //this.setVisible(false);
                 }
             } catch (HessianRuntimeException hre) {
-                connectionExceptionCaught(hre);
+                logger.error("Cann't connect to " + url + " " + hre);
+                connectionExceptionCaught(this);
             } catch (HessianConnectionException hce) {
-                connectionExceptionCaught(hce);
+                logger.error("Cann't connect to " + url + " " + hce);
+                connectionExceptionCaught(this);
             }
         } else {
             logger.debug("Action not performed in not NORMAL status");
@@ -205,9 +200,11 @@ public class NewGameServerWindow extends JDialog implements Runnable {
             this.dispose();
             logger.debug("NewGameServerWindow disposed");
         } catch (HessianRuntimeException hre) {
-            connectionExceptionCaught(hre);
-        } catch (HessianConnectionException hce){
-            connectionExceptionCaught(hce);
+            logger.error("Cann't connect to " + url + " " + hre);
+            connectionExceptionCaught(this);
+        } catch (HessianConnectionException hce) {
+            logger.error("Cann't connect to " + url + " " + hce);
+            connectionExceptionCaught(this);
         }
     }
 
@@ -232,9 +229,8 @@ public class NewGameServerWindow extends JDialog implements Runnable {
 
     private void helpBtnMouseClicked(MouseEvent e) {
         logger.debug("help button clicked " + e);
-        JOptionPane.showMessageDialog(this, "<html>Enter server name, not less then 1 symbol, but not longer then 12 symbols.<br>" +
-                "Choose timeout value. Click button OK and wait until another player connect to this server</html>",
-                "Help", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, TextsGetter.getText("newGameServerWindow.help"),
+                TextsGetter.getText("helpWindow.title"), JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void initComponents() {
@@ -254,7 +250,7 @@ public class NewGameServerWindow extends JDialog implements Runnable {
 
         //======== this ========
         setAlwaysOnTop(false);
-        setTitle("New Game Server");
+        setTitle(TextsGetter.getText("newGameServerWindow.title"));
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent e) {
@@ -291,10 +287,10 @@ public class NewGameServerWindow extends JDialog implements Runnable {
             {
 
                 //---- serverNameLabel ----
-                serverNameLabel.setText("New game name");
+                serverNameLabel.setText(TextsGetter.getText("newGameServerWindow.serverName"));
 
                 //---- timeoutLabel ----
-                timeoutLabel.setText("Timeout");
+                timeoutLabel.setText(TextsGetter.getText("newGameServerWindow.timeout"));
 
                 //======== buttonBar ========
                 {
@@ -304,7 +300,7 @@ public class NewGameServerWindow extends JDialog implements Runnable {
                     ((GridBagLayout) buttonBar.getLayout()).columnWeights = new double[]{1.0, 0.0, 0.0, 0.0};
 
                     //---- okButton ----
-                    okButton.setText("OK");
+                    okButton.setText(TextsGetter.getText("buttons.ok"));
                     okButton.addMouseListener(new MouseAdapter() {
                         @Override
                         public void mouseClicked(MouseEvent e) {
@@ -316,7 +312,7 @@ public class NewGameServerWindow extends JDialog implements Runnable {
                             new Insets(0, 0, 0, 5), 0, 0));
 
                     //---- cancelButton ----
-                    cancelButton.setText("Cancel");
+                    cancelButton.setText(TextsGetter.getText("buttons.cancel"));
                     cancelButton.addMouseListener(new MouseAdapter() {
                         @Override
                         public void mouseClicked(MouseEvent e) {
@@ -328,7 +324,7 @@ public class NewGameServerWindow extends JDialog implements Runnable {
                             new Insets(0, 0, 0, 5), 0, 0));
 
                     //---- helpButton ----
-                    helpButton.setText("Help");
+                    helpButton.setText(TextsGetter.getText("buttons.help"));
                     helpButton.addMouseListener(new MouseAdapter() {
                         @Override
                         public void mouseClicked(MouseEvent e) {
@@ -341,7 +337,7 @@ public class NewGameServerWindow extends JDialog implements Runnable {
                 }
 
                 //---- statusLabel ----
-                statusLabel.setText("Status: ");
+                statusLabel.setText(TextsGetter.getText("status.empty"));
 
                 GroupLayout contentPanelLayout = new GroupLayout(contentPanel);
                 contentPanel.setLayout(contentPanelLayout);

@@ -101,11 +101,11 @@ public class ActiveCardsDesc implements Serializable {
         this.leftCardNum = leftCardNum;
     }
 
-    public void addFirstPLCards(int card){
+    public void addFirstPLCards(int card) {
         this.firstPLCards.add(card);
     }
 
-    public void addCardsOnTable(int card){
+    public void addCardsOnTable(int card) {
         this.cardsOnTable.add(card);
     }
 }

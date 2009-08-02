@@ -64,6 +64,12 @@ public class GUITools {
         field.setMaximumSize(size);
     }
 
+    public static void fixComboBoxSize(JComboBox combo){
+        Dimension size = combo.getPreferredSize();
+        size.width = combo.getMaximumSize().width;
+        combo.setMaximumSize(size);
+    }
+
     private static int maximumElementPosition(int[] array) {
         int maxPos = 0;
         for (int i = 1; i < array.length; i++) {
